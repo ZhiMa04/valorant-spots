@@ -8,8 +8,7 @@ out/
 # build
 dist/
 
-# env
-.env
+# env (保留 .env 在仓库中，用于 Vercel 构建)
 .env.local
 
 # database
