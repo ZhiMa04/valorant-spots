@@ -158,7 +158,7 @@ export function UploadDialog() {
           {/* 审核提示 */}
           {user.role === 'USER' && (
             <p className="text-xs text-muted-foreground bg-muted p-2 rounded">
-              普通用户发布的点位需要管理员审核通过后才会显示
+              感谢您为本站付出的每一份力量！
             </p>
           )}
         </div>
