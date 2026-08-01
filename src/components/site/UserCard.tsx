@@ -40,6 +40,10 @@ export function UserCard() {
   const { user, setUser, fetchUser, setAuthDialog } = useStore()
   const [nicknameDialogOpen, setNicknameDialogOpen] = useState(false)
   const [newNickname, setNewNickname] = useState('')
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordLoading, setPasswordLoading] = useState(false)
 
   // 页面加载时获取用户信息
   useEffect(() => {
@@ -158,6 +162,9 @@ export function UserCard() {
               <span className="ml-auto text-xs text-muted-foreground">冷却中</span>
             )}
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => { setPasswordDialogOpen(true); setOldPassword(''); setNewPassword('') }}>
+            修改密码
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-red-600">
             退出登录
@@ -184,6 +191,70 @@ export function UserCard() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setNicknameDialogOpen(false)}>取消</Button>
             <Button onClick={handleNicknameChange}>确认修改</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 修改密码弹窗 */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>修改密码</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="old-pwd">旧密码</Label>
+              <Input
+                id="old-pwd"
+                type="password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                placeholder="输入当前密码"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-pwd">新密码（至少6位）</Label>
+              <Input
+                id="new-pwd"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="设置新密码"
+              />
+              {newPassword && newPassword.length < 6 && (
+                <p className="text-xs text-red-500">密码至少6位</p>
+              )}
+              {newPassword && newPassword.length >= 6 && (
+                <p className="text-xs text-green-600">✓ 密码长度合格</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>取消</Button>
+            <Button
+              onClick={async () => {
+                setPasswordLoading(true)
+                const csrfToken = document.cookie.match(/csrf-token=([^;]+)/)?.[1]
+                const res = await fetch('/api/auth/change-password', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken || '' },
+                  body: JSON.stringify({ oldPassword, newPassword }),
+                })
+                const data = await res.json()
+                setPasswordLoading(false)
+                if (res.ok) {
+                  toast.success('密码修改成功')
+                  setPasswordDialogOpen(false)
+                  setOldPassword('')
+                  setNewPassword('')
+                } else {
+                  toast.error(data.error || '修改失败')
+                }
+              }}
+              disabled={passwordLoading || !oldPassword || newPassword.length < 6}
+            >
+              {passwordLoading ? '修改中...' : '确认修改'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
