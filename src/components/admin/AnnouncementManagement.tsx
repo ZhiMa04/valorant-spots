@@ -11,6 +11,7 @@ import { Plus, Edit2, Trash2 } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from '@/components/ui/dialog'
+import { DropZone } from '@/components/site/DropZone'
 
 interface Announcement {
   id: number; title: string; content: string; images: string[]
@@ -22,7 +23,8 @@ export function AnnouncementManagement() {
   const [list, setList] = useState<Announcement[]>([])
   const [editId, setEditId] = useState<number | null>(null)
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ title: '', content: '', images: '' })
+  const [form, setForm] = useState({ title: '', content: '' })
+  const [imagePaths, setImagePaths] = useState<string[]>([])
 
   const fetchList = useCallback(async () => {
     const res = await fetch('/api/admin/announcements')
@@ -35,19 +37,20 @@ export function AnnouncementManagement() {
 
   const openCreate = () => {
     setEditId(null)
-    setForm({ title: '', content: '', images: '' })
+    setForm({ title: '', content: '' })
+    setImagePaths([])
     setOpen(true)
   }
 
   const openEdit = (a: Announcement) => {
     setEditId(a.id)
-    setForm({ title: a.title, content: a.content, images: a.images.join('\n') })
+    setForm({ title: a.title, content: a.content })
+    setImagePaths(a.images || [])
     setOpen(true)
   }
 
   const handleSave = async () => {
-    const images = form.images.split('\n').map(s => s.trim()).filter(Boolean)
-    const body = { title: form.title, content: form.content, images }
+    const body = { title: form.title, content: form.content, images: imagePaths }
     const url = editId ? `/api/admin/announcements?id=${editId}` : '/api/admin/announcements'
     const method = editId ? 'PUT' : 'POST'
     const res = await fetch(url, {
@@ -116,8 +119,13 @@ export function AnnouncementManagement() {
               <Textarea rows={4} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>图片路径（每行一个）</Label>
-              <Textarea rows={2} value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} placeholder="/uploads/xxx.png" />
+              <Label>图片</Label>
+              <DropZone
+                label="拖拽公告图片到这里"
+                uploadedPaths={imagePaths}
+                onUpload={(paths) => setImagePaths([...imagePaths, ...paths])}
+                onRemove={(i) => setImagePaths(imagePaths.filter((_, j) => j !== i))}
+              />
             </div>
           </div>
           <DialogFooter>
