@@ -29,10 +29,12 @@ export const POST = withAuth(async (req, user) => {
       const ext = file.name.split('.').pop() || 'png'
       const filename = `${user.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
 
-      // 上传到 Vercel Blob
+      // 上传到 Vercel Blob（显式指定 storeId 和 token，避免环境变量冲突）
       const blob = await put(filename, file, {
         access: 'public',
         contentType: file.type,
+        token: 'vercel_blob_rw_XnZFo3R5kxDwbWzR_2asS4naFd1IsCISHNu8MnDDY4YCuoe',
+        storeId: 'store_XnZFo3R5kxDwbWzR',
       })
 
       savedPaths.push(blob.url)
