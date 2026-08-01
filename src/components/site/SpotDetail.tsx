@@ -10,6 +10,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { DropZone } from './DropZone'
 import { ThumbsUp, ThumbsDown, Flag, ArrowLeft, Trash2, Reply, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -54,6 +55,8 @@ export function SpotDetail() {
   const [editOpen, setEditOpen] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editContent, setEditContent] = useState('')
+  const [editMarkerPaths, setEditMarkerPaths] = useState<string[]>([])
+  const [editEffectPaths, setEditEffectPaths] = useState<string[]>([])
   const [lightboxImgs, setLightboxImgs] = useState<string[]>([])
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [zoom, setZoom] = useState(1)
@@ -361,6 +364,8 @@ export function SpotDetail() {
             <Button variant="ghost" size="sm" onClick={() => {
               setEditTitle(spot.title)
               setEditContent(spot.content)
+              setEditMarkerPaths(spot.markerImages || [])
+              setEditEffectPaths(spot.effectImages || [])
               setEditOpen(true)
             }}>
               编辑点位
@@ -465,10 +470,28 @@ export function SpotDetail() {
               <Label htmlFor="edit-content">正文</Label>
               <Textarea
                 id="edit-content"
-                rows={6}
+                rows={4}
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 maxLength={2000}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>描点图</Label>
+              <DropZone
+                label="拖拽描点图到这里"
+                uploadedPaths={editMarkerPaths}
+                onUpload={(paths) => setEditMarkerPaths([...editMarkerPaths, ...paths])}
+                onRemove={(i) => setEditMarkerPaths(editMarkerPaths.filter((_, j) => j !== i))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>效果图</Label>
+              <DropZone
+                label="拖拽效果图到这里"
+                uploadedPaths={editEffectPaths}
+                onUpload={(paths) => setEditEffectPaths([...editEffectPaths, ...paths])}
+                onRemove={(i) => setEditEffectPaths(editEffectPaths.filter((_, j) => j !== i))}
               />
             </div>
           </div>
@@ -479,7 +502,12 @@ export function SpotDetail() {
               const res = await fetch(`/api/spots/${selectedSpotId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
-                body: JSON.stringify({ title: editTitle, content: editContent }),
+                body: JSON.stringify({
+                  title: editTitle,
+                  content: editContent,
+                  markerImages: editMarkerPaths,
+                  effectImages: editEffectPaths,
+                }),
               })
               const data = await res.json()
               if (res.ok) {

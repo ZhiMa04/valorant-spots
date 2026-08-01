@@ -13,7 +13,7 @@ import { UploadDialog } from '@/components/site/UploadDialog'
 import { AuthDialog } from '@/components/site/AuthDialog'
 import { AdminView } from '@/components/admin/AdminView'
 import { Button } from '@/components/ui/button'
-import { Sparkles, ArrowLeft, Home as HomeIcon } from 'lucide-react'
+import { Sparkles, ArrowLeft, Home as HomeIcon, Trophy } from 'lucide-react'
 
 export default function Home() {
   const {
@@ -21,6 +21,8 @@ export default function Home() {
     authDialogOpen, authMode, setAuthDialog,
     uploadDialogOpen,
   } = useStore()
+
+  const [mobileLeaderboard, setMobileLeaderboard] = useState(false)
 
   useEffect(() => {
     fetchUser()
@@ -64,12 +66,10 @@ export default function Home() {
             {renderView()}
           </main>
 
-          {/* 右侧侧栏：贡献榜 */}
+          {/* 右侧侧栏：贡献榜（桌面端） */}
           <aside className="w-64 flex-shrink-0 hidden lg:block">
             <div className="sticky top-20 space-y-4">
               <Leaderboard />
-
-              {/* 未登录提示 */}
               {!user && (
                 <div className="rounded-xl border bg-card p-4 text-center">
                   <p className="text-sm text-muted-foreground mb-3">
@@ -85,6 +85,33 @@ export default function Home() {
           </aside>
         </div>
       </div>
+
+      {/* 移动端贡献榜浮动按钮 */}
+      <div className="lg:hidden fixed bottom-4 right-4 z-40">
+        <Button
+          size="sm"
+          variant="secondary"
+          className="rounded-full shadow-lg gap-1.5"
+          onClick={() => setMobileLeaderboard(true)}
+        >
+          <Trophy className="h-4 w-4" />
+          贡献榜
+        </Button>
+      </div>
+
+      {/* 移动端贡献榜弹窗 */}
+      {mobileLeaderboard && (
+        <div className="lg:hidden fixed inset-0 z-50 flex items-end" onClick={() => setMobileLeaderboard(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative w-full bg-background rounded-t-2xl p-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">贡献榜</h3>
+              <button onClick={() => setMobileLeaderboard(false)} className="text-muted-foreground">✕</button>
+            </div>
+            <Leaderboard />
+          </div>
+        </div>
+      )}
 
       {/* 底部免责声明 */}
       <Footer />

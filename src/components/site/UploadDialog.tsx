@@ -138,7 +138,7 @@ export function UploadDialog() {
           {/* 标题 */}
           <div className="space-y-1.5">
             <Label>标题（必填）</Label>
-            <Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="标题格式:站位+目标位+技能名称,例如:A包点射A大探测箭" maxLength={50} />
+            <Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="站位+目标位+技能名，如:A包射A大探测箭" maxLength={50} />
           </div>
 
           {/* 正文 */}

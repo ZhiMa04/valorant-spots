@@ -74,7 +74,7 @@ export const PATCH = withAuth(async (req, user) => {
     const id = Number(pathParts[pathParts.length - 1])
 
     const body = await req.json()
-    const { title, content } = body
+    const { title, content, markerImages, effectImages } = body
 
     const spot = await db.spot.findUnique({ where: { id } })
     if (!spot) return NextResponse.json({ error: '点位不存在' }, { status: 404 })
@@ -86,7 +86,9 @@ export const PATCH = withAuth(async (req, user) => {
 
     const data: Record<string, unknown> = {}
     if (title?.trim()) data.title = title.trim()
-    if (content?.trim()) data.content = content.trim()
+    if (content !== undefined) data.content = content?.trim() || spot.content
+    if (markerImages !== undefined) data.markerImages = JSON.stringify(markerImages)
+    if (effectImages !== undefined) data.effectImages = JSON.stringify(effectImages)
 
     await db.spot.update({ where: { id }, data })
     return NextResponse.json({ message: '修改成功' })
