@@ -20,6 +20,7 @@ export const GET = withAdmin(async () => {
     action: l.action,
     targetId: l.targetId,
     result: l.result,
+    detail: l.detail,
     createdAt: l.createdAt,
   })))
 })

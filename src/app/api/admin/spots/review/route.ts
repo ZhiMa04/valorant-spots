@@ -41,7 +41,10 @@ export const POST = withAdmin(async (req, admin) => {
   const body = await req.json()
   const { action, reason } = body // action: 'approve' | 'reject'
 
-  const spot = await db.spot.findUnique({ where: { id } })
+  const spot = await db.spot.findUnique({
+    where: { id },
+    include: { creator: { select: { id: true, nickname: true } }, map: { select: { name: true } }, agent: { select: { name: true } } }
+  })
   if (!spot) return NextResponse.json({ error: '点位不存在' }, { status: 404 })
 
   // 只能审核待审核的
@@ -52,7 +55,13 @@ export const POST = withAdmin(async (req, admin) => {
   if (action === 'approve') {
     await db.spot.update({ where: { id }, data: { status: 'APPROVED', rejectReason: null } })
     await db.auditLog.create({
-      data: { handlerId: admin.id, action: 'SPOT_AUDIT', targetId: id, result: 'APPROVED' }
+      data: {
+        handlerId: admin.id,
+        action: 'SPOT_AUDIT',
+        targetId: id,
+        result: 'APPROVED',
+        detail: `审核通过点位「${spot.title}」(创建者：${spot.creator.nickname} #${spot.creator.id}，地图：${spot.map.name}，特工：${spot.agent.name})`,
+      }
     })
     return NextResponse.json({ message: '审核通过' })
   } else if (action === 'reject') {
@@ -61,7 +70,13 @@ export const POST = withAdmin(async (req, admin) => {
     }
     await db.spot.update({ where: { id }, data: { status: 'REJECTED', rejectReason: reason.trim() } })
     await db.auditLog.create({
-      data: { handlerId: admin.id, action: 'SPOT_AUDIT', targetId: id, result: `REJECTED: ${reason.trim()}` }
+      data: {
+        handlerId: admin.id,
+        action: 'SPOT_AUDIT',
+        targetId: id,
+        result: `REJECTED: ${reason.trim()}`,
+        detail: `拒绝点位「${spot.title}」(创建者：${spot.creator.nickname} #${spot.creator.id}，地图：${spot.map.name}，特工：${spot.agent.name})，原因：${reason.trim()}`,
+      }
     })
     // 通知用户
     await db.notification.create({

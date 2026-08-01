@@ -179,6 +179,7 @@ model AuditLog {
   action      String   // 审核动作类型
   targetId    Int      // 操作目标ID（点位ID或举报ID）
   result      String   // 审核结果
+  detail      String   @default("") // 详细描述：处理了谁的什么点位/举报
   createdAt   DateTime @default(now())
 
   handler User @relation(fields: [handlerId], references: [id])

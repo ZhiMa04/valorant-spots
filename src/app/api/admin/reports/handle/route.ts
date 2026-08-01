@@ -47,9 +47,22 @@ export const POST = withAdmin(async (req, admin) => {
   const body = await req.json()
   const { action } = body // action: 'confirm' | 'delete'
 
-  const report = await db.report.findUnique({ where: { id }, include: { spot: true } })
+  const report = await db.report.findUnique({
+    where: { id },
+    include: {
+      reporter: { select: { id: true, nickname: true } },
+      spot: { include: { creator: { select: { id: true, nickname: true } }, map: { select: { name: true } }, agent: { select: { name: true } } } },
+    }
+  })
   if (!report) return NextResponse.json({ error: '举报不存在' }, { status: 404 })
   if (report.status !== 'PENDING') return NextResponse.json({ error: '该举报已处理' }, { status: 400 })
+
+  const spotTitle = report.spot?.title || '已删除点位'
+  const creatorName = report.spot?.creator?.nickname || '未知'
+  const creatorId = report.spot?.creator?.id || '?'
+  const mapName = report.spot?.map?.name || '未知'
+  const agentName = report.spot?.agent?.name || '未知'
+  const reporterName = report.reporter?.nickname || '未知'
 
   if (action === 'confirm') {
     // 确认无误，保留点位
@@ -58,7 +71,13 @@ export const POST = withAdmin(async (req, admin) => {
       data: { status: 'CONFIRMED', handlerId: admin.id, handledAt: new Date() },
     })
     await db.auditLog.create({
-      data: { handlerId: admin.id, action: 'REPORT_AUDIT', targetId: id, result: 'CONFIRMED' }
+      data: {
+        handlerId: admin.id,
+        action: 'REPORT_AUDIT',
+        targetId: id,
+        result: 'CONFIRMED',
+        detail: `确认举报点位「${spotTitle}」(创建者：${creatorName} #${creatorId}，地图：${mapName}，特工：${agentName}，举报人：${reporterName})，点位保留`,
+      }
     })
     return NextResponse.json({ message: '举报已确认，点位保留' })
   } else if (action === 'delete') {
@@ -71,7 +90,13 @@ export const POST = withAdmin(async (req, admin) => {
       data: { status: 'DELETED', handlerId: admin.id, handledAt: new Date() },
     })
     await db.auditLog.create({
-      data: { handlerId: admin.id, action: 'REPORT_AUDIT', targetId: id, result: 'DELETED' }
+      data: {
+        handlerId: admin.id,
+        action: 'REPORT_AUDIT',
+        targetId: id,
+        result: 'DELETED',
+        detail: `删除举报点位「${spotTitle}」(创建者：${creatorName} #${creatorId}，地图：${mapName}，特工：${agentName}，举报人：${reporterName})，点位已删除`,
+      }
     })
     return NextResponse.json({ message: '点位已删除' })
   }
