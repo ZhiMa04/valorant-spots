@@ -38,6 +38,7 @@ interface NotifItem {
   type: string
   title: string
   content: string
+  images?: string[]
   isRead: boolean
   createdAt: string
   creator?: { id: number; nickname: string; role: string } | null
@@ -71,6 +72,7 @@ export function NotificationButton() {
           type: 'ANNOUNCEMENT',
           title: a.title,
           content: a.content,
+          images: a.images || [],
           isRead: true,
           createdAt: a.createdAt,
           creator: a.creator,
@@ -194,6 +196,21 @@ export function NotificationButton() {
             <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
               {selected?.content}
             </div>
+
+            {/* 图片 */}
+            {selected?.images && selected.images.length > 0 && (
+              <div className="grid grid-cols-2 gap-2">
+                {selected.images.map((img, i) => (
+                  <a key={i} href={img} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={img}
+                      alt={`图片${i + 1}`}
+                      className="w-full rounded-lg border cursor-pointer hover:opacity-80 transition-opacity object-cover"
+                    />
+                  </a>
+                ))}
+              </div>
+            )}
 
             {/* 创建人信息 */}
             {selected?.creator && (
