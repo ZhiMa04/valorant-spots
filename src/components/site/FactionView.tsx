@@ -29,7 +29,7 @@ export function FactionView() {
         <button
           onClick={() => goSpots('ATTACK')}
           className="group rounded-2xl p-8 flex flex-col items-center justify-center gap-4 transition-all hover:scale-[1.03] hover:shadow-2xl"
-          style={{ background: 'rgba(255,99,71,0.85)' }}
+          style={{ background: 'rgba(255,99,71,1)' }}
         >
           <div className="w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
             style={{ background: 'rgba(255,255,255,0.1)' }}
@@ -44,7 +44,7 @@ export function FactionView() {
         <button
           onClick={() => goSpots('DEFENSE')}
           className="group rounded-2xl p-8 flex flex-col items-center justify-center gap-4 transition-all hover:scale-[1.03] hover:shadow-2xl border"
-          style={{ background: 'rgba(70,130,230,0.85)', borderColor: 'rgba(70,130,230,0.2)' }}
+          style={{ background: 'rgba(70,130,230,1)', borderColor: 'rgba(70,130,230,0.2)' }}
         >
           <div className="w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
             style={{ background: 'rgba(255,255,255,0.1)' }}
