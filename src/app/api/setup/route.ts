@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 
 // GET /api/setup — 初始化数据库（部署后访问一次）
-// 仅在数据库为空时执行，创建管理员+地图+特工+公告
 export async function GET() {
   try {
     const userCount = await db.user.count()
@@ -11,14 +10,13 @@ export async function GET() {
       return NextResponse.json({ message: '数据库已初始化，无需重复操作', userCount })
     }
 
-    // ========== 创建管理员 ==========
-    const salt = crypto.randomBytes(16).toString('hex')
-    const passwordHash = crypto.createHash('sha256').update('admin123' + salt).digest('hex')
+    // ========== 创建管理员（bcrypt 加密）==========
+    const passwordHash = await bcrypt.hash('admin123', 10)
     const admin = await db.user.create({
       data: {
         phone: '13800000001',
         nickname: '站长',
-        salt,
+        salt: '',
         passwordHash,
         role: 'SUPER_ADMIN',
         status: 'NORMAL',

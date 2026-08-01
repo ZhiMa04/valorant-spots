@@ -24,6 +24,8 @@ model User {
   role                String   @default("USER") // USER(普通用户) | MEMBER(会员) | ADMIN(管理员) | SUPER_ADMIN(高级管理员)
   status              String   @default("NORMAL") // NORMAL(正常) | BLOCKED(被拉黑)
   lastNicknameChange  DateTime? // 昵称最后修改时间，每30天可改一次
+  loginAttempts       Int      @default(0) // 登录失败次数
+  lockedUntil         DateTime? // 锁定截止时间
   uploadCount         Int      @default(0) // 上传点位数
   likeCount           Int      @default(0) // 获赞总数
   createdAt           DateTime @default(now())

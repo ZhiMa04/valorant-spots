@@ -1,13 +1,10 @@
 // prisma/seed.ts — 初始化种子数据：13张地图 + 29名特工 + 高级管理员账号
 import { PrismaClient } from '@prisma/client'
-import crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 
 const db = new PrismaClient()
 
-// 密码哈希：SHA-256 + salt
-function hashPassword(password: string, salt: string): string {
-  return crypto.createHash('sha256').update(password + salt).digest('hex')
-}
+// 密码哈希：bcrypt
 
 // ========== 13 张预设地图 ==========
 const MAPS = [
@@ -69,13 +66,12 @@ async function main() {
   // 1. 创建高级管理员账号
   const existingAdmin = await db.user.findFirst({ where: { role: 'SUPER_ADMIN' } })
   if (!existingAdmin) {
-    const salt = crypto.randomBytes(16).toString('hex')
-    const passwordHash = hashPassword('admin123', salt)
+    const passwordHash = await bcrypt.hash('admin123', 10)
     await db.user.create({
       data: {
         phone: '13800000001',
         nickname: '站长',
-        salt,
+        salt: '',
         passwordHash,
         role: 'SUPER_ADMIN',
         status: 'NORMAL',
