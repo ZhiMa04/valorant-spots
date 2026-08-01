@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { ThumbsUp, ThumbsDown, Flag, ArrowLeft, Trash2, Reply } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Flag, ArrowLeft, Trash2, Reply, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 
 // 举报原因
@@ -54,7 +54,8 @@ export function SpotDetail() {
   const [editOpen, setEditOpen] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editContent, setEditContent] = useState('')
-  const [lightboxImg, setLightboxImg] = useState<string | null>(null)
+  const [lightboxImgs, setLightboxImgs] = useState<string[]>([])
+  const [lightboxIndex, setLightboxIndex] = useState(0)
   const [zoom, setZoom] = useState(1)
 
   // 评论相关
@@ -277,7 +278,7 @@ export function SpotDetail() {
                   alt={`描点图${i+1}`}
                   loading="lazy"
                   className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
-                  onClick={() => setLightboxImg(img)}
+                  onClick={() => { setLightboxImgs([...spot.markerImages, ...(spot.effectImages || [])]); setLightboxIndex(i); setZoom(1) }}
                 />
               ))}
             </div>
@@ -296,7 +297,7 @@ export function SpotDetail() {
                   alt={`效果图${i+1}`}
                   loading="lazy"
                   className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
-                  onClick={() => setLightboxImg(img)}
+                  onClick={() => { setLightboxImgs([...(spot.markerImages || []), ...spot.effectImages]); setLightboxIndex((spot.markerImages?.length || 0) + i); setZoom(1) }}
                 />
               ))}
             </div>
@@ -493,29 +494,57 @@ export function SpotDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* ========== 图片查看器（支持缩放） ========== */}
-      <Dialog open={!!lightboxImg} onOpenChange={(open) => { if (!open) { setLightboxImg(null); setZoom(1) } }}>
+      {/* ========== 图片查看器（支持缩放+左右切换） ========== */}
+      <Dialog open={lightboxImgs.length > 0} onOpenChange={(open) => { if (!open) { setLightboxImgs([]); setZoom(1) } }}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden flex flex-col items-center justify-center gap-3">
-          {lightboxImg && (
+          {lightboxImgs.length > 0 && (
             <>
-              <div
-                className="overflow-auto flex-1 flex items-center justify-center w-full"
-                onWheel={(e) => {
-                  e.preventDefault()
-                  const delta = e.deltaY > 0 ? -0.2 : 0.2
-                  setZoom(z => Math.min(Math.max(z + delta, 0.5), 5))
-                }}
-              >
-                <img
-                  src={lightboxImg}
-                  alt="查看大图"
-                  className="max-w-full max-h-[80vh] object-contain transition-transform cursor-grab active:cursor-grabbing"
-                  style={{ transform: `scale(${zoom})` }}
-                  draggable={false}
-                />
+              <div className="flex items-center justify-center w-full flex-1 relative">
+                {/* 左箭头 */}
+                {lightboxImgs.length > 1 && (
+                  <button
+                    onClick={() => { setLightboxIndex(i => (i - 1 + lightboxImgs.length) % lightboxImgs.length); setZoom(1) }}
+                    className="absolute left-2 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                )}
+
+                <div
+                  className="overflow-auto flex-1 flex items-center justify-center max-h-[80vh]"
+                  onWheel={(e) => {
+                    e.preventDefault()
+                    const delta = e.deltaY > 0 ? -0.2 : 0.2
+                    setZoom(z => Math.min(Math.max(z + delta, 0.5), 5))
+                  }}
+                >
+                  <img
+                    src={lightboxImgs[lightboxIndex]}
+                    alt={`图片${lightboxIndex + 1}`}
+                    className="max-w-full max-h-[80vh] object-contain transition-transform"
+                    style={{ transform: `scale(${zoom})` }}
+                    draggable={false}
+                  />
+                </div>
+
+                {/* 右箭头 */}
+                {lightboxImgs.length > 1 && (
+                  <button
+                    onClick={() => { setLightboxIndex(i => (i + 1) % lightboxImgs.length); setZoom(1) }}
+                    className="absolute right-2 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </button>
+                )}
               </div>
-              {/* 缩放控制条 */}
+
+              {/* 底部控制条 */}
               <div className="flex items-center gap-4 py-2 px-4 bg-muted/80 rounded-t-lg">
+                {lightboxImgs.length > 1 && (
+                  <span className="text-xs text-muted-foreground font-mono">
+                    {lightboxIndex + 1} / {lightboxImgs.length}
+                  </span>
+                )}
                 <button
                   onClick={() => setZoom(z => Math.max(z - 0.25, 0.5))}
                   className="text-lg font-bold hover:text-primary w-8 h-8 rounded-full bg-muted flex items-center justify-center"
