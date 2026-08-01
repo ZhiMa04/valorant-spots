@@ -13,8 +13,10 @@ export const POST = withAuth(async (req, user) => {
       return NextResponse.json({ error: '缺少参数' }, { status: 400 })
     }
 
-    const validReasons = ['SPAM', 'INAPPROPRIATE', 'MISLEADING', 'OTHER']
-    if (!validReasons.includes(reason)) {
+    const validReasons = ['OUTDATED', 'MISLEADING', 'INAPPROPRIATE', 'OTHER']
+    // OTHER 类型可以带自定义原因（格式：OTHER:用户填写的内容）
+    const isValidReason = validReasons.some(r => reason.startsWith(r))
+    if (!isValidReason) {
       return NextResponse.json({ error: '举报原因无效' }, { status: 400 })
     }
 

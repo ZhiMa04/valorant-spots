@@ -9,7 +9,16 @@ import {
 } from '@/components/ui/dialog'
 
 const REASON_LABELS: Record<string, string> = {
-  SPAM: '垃圾内容', INAPPROPRIATE: '不当内容', MISLEADING: '误导信息', OTHER: '其他'
+  OUTDATED: '版本更新该点位已失效',
+  MISLEADING: '该点位描述模糊或错误',
+  INAPPROPRIATE: '发布内容违规',
+}
+
+function formatReason(reason: string): string {
+  if (REASON_LABELS[reason]) return REASON_LABELS[reason]
+  if (reason.startsWith('OTHER:')) return '其他：' + reason.slice(6)
+  if (reason === 'OTHER') return '其他'
+  return reason
 }
 
 interface PendingReport {
@@ -63,7 +72,7 @@ export function ReportReview() {
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm">{r.spot?.title || '已删除'}</div>
                 <div className="text-xs text-muted-foreground mt-1">
-                  原因：{REASON_LABELS[r.reason] || r.reason} · 举报人：{r.reporter.nickname}
+                  原因：{formatReason(r.reason)} · 举报人：{r.reporter.nickname}
                 </div>
                 <div className="text-[10px] text-muted-foreground mt-1">
                   {new Date(r.createdAt).toLocaleString('zh-CN')}
@@ -87,7 +96,7 @@ export function ReportReview() {
               <div><span className="text-muted-foreground text-sm">点位标题：</span>{detail.spot.title}</div>
               <div><span className="text-muted-foreground text-sm">创建者：</span>{detail.spot.creator.nickname}</div>
               <div><span className="text-muted-foreground text-sm">地图/特工：</span>{detail.spot.map.name} / {detail.spot.agent.name}</div>
-              <div><span className="text-muted-foreground text-sm">举报原因：</span>{REASON_LABELS[detail.reason]}</div>
+              <div><span className="text-muted-foreground text-sm">举报原因：</span>{formatReason(detail.reason)}</div>
               <div className="text-sm whitespace-pre-wrap bg-muted p-2 rounded">{detail.spot.content}</div>
             </div>
           )}

@@ -20,9 +20,9 @@ import { toast } from 'sonner'
 
 // 举报原因
 const REPORT_REASONS = [
-  { value: 'SPAM', label: '垃圾内容' },
-  { value: 'INAPPROPRIATE', label: '不当内容' },
-  { value: 'MISLEADING', label: '误导信息' },
+  { value: 'OUTDATED', label: '版本更新该点位已失效' },
+  { value: 'MISLEADING', label: '该点位描述模糊或错误' },
+  { value: 'INAPPROPRIATE', label: '发布内容违规' },
   { value: 'OTHER', label: '其他' },
 ]
 
@@ -56,6 +56,7 @@ export function SpotDetail() {
   const [csrfToken, setCsrfToken] = useState<string | null>(null)
   const [reportOpen, setReportOpen] = useState(false)
   const [reportReason, setReportReason] = useState('')
+  const [reportDetail, setReportDetail] = useState('')
   const [editOpen, setEditOpen] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editContent, setEditContent] = useState('')
@@ -116,11 +117,13 @@ export function SpotDetail() {
   // ========== 举报 ==========
   const handleReport = async () => {
     if (!reportReason) { toast.error('请选择举报原因'); return }
+    if (reportReason === 'OTHER' && !reportDetail.trim()) { toast.error('请填写举报原因'); return }
     if (!csrfToken) return
+    const reason = reportReason === 'OTHER' ? `OTHER:${reportDetail.trim()}` : reportReason
     const res = await fetch('/api/reports', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
-      body: JSON.stringify({ spotId: selectedSpotId, reason: reportReason }),
+      body: JSON.stringify({ spotId: selectedSpotId, reason }),
     })
     if (res.ok) {
       toast.success('举报已提交')
@@ -455,10 +458,23 @@ export function SpotDetail() {
                 <span className="text-sm">{r.label}</span>
               </label>
             ))}
+            {/* "其他"选中时显示输入框 */}
+            {reportReason === 'OTHER' && (
+              <Textarea
+                rows={3}
+                value={reportDetail}
+                onChange={(e) => setReportDetail(e.target.value)}
+                placeholder="请填写举报原因"
+                className="mt-2"
+              />
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReportOpen(false)}>取消</Button>
-            <Button onClick={handleReport}>提交举报</Button>
+            <Button
+              onClick={handleReport}
+              disabled={reportReason === 'OTHER' && !reportDetail.trim()}
+            >提交举报</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
