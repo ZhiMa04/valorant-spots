@@ -7,11 +7,18 @@ export async function GET() {
   try {
     const userCount = await db.user.count()
     if (userCount > 0) {
-      // 如果管理员手机号还是旧的，更新为新号
+      // 强制更新管理员手机号为 10000000001
       const admin = await db.user.findFirst({ where: { role: 'SUPER_ADMIN' } })
-      if (admin && admin.phone === '13800000001') {
+      if (admin && admin.phone !== '10000000001') {
         await db.user.update({ where: { id: admin.id }, data: { phone: '10000000001' } })
         return NextResponse.json({ message: '管理员手机号已更新为 10000000001', admin: { phone: '10000000001', password: 'admin123' } })
+      }
+      // 同时重置密码为 admin123
+      if (admin) {
+        const bcrypt = (await import('bcryptjs')).default
+        const passwordHash = await bcrypt.hash('admin123', 10)
+        await db.user.update({ where: { id: admin.id }, data: { passwordHash, salt: '', loginAttempts: 0, lockedUntil: null } })
+        return NextResponse.json({ message: '管理员账号已重置', admin: { phone: '10000000001', password: 'admin123' } })
       }
       return NextResponse.json({ message: '数据库已初始化，无需重复操作', userCount })
     }
