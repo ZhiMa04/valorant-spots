@@ -6,15 +6,13 @@ import { Shield } from 'lucide-react'
 // 两把剑向下交叉图标
 function CrossedSwords({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {/* 左剑 */}
-      <path d="M14.5 3.5 L3.5 14.5 L3.5 17 L6 17 L17 6 Z" />
-      {/* 左剑护手 */}
-      <path d="M3.5 14.5 L5.5 12.5 M6 17 L8 15" />
-      {/* 右剑 */}
-      <path d="M9.5 3.5 L20.5 14.5 L20.5 17 L18 17 L7 6 Z" />
-      {/* 右剑护手 */}
-      <path d="M20.5 14.5 L18.5 12.5 M18 17 L16 15" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {/* 左剑：从右上到左下 */}
+      <path d="M19 2 L14 7 M19 2 L19 5 L16 5" />
+      <path d="M14 7 L5 16 L4 20 L8 19 L17 10" />
+      {/* 右剑：从左上到右下 */}
+      <path d="M5 2 L10 7 M5 2 L5 5 L8 5" />
+      <path d="M10 7 L19 16 L20 20 L16 19 L7 10" />
     </svg>
   )
 }
