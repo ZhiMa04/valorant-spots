@@ -8,10 +8,62 @@ interface DropZoneProps {
   onUpload: (paths: string[]) => void
   uploadedPaths: string[]
   onRemove: (index: number) => void
+  /** 最大宽度/高度，默认 1920px */
+  maxSize?: number
+  /** JPEG 压缩质量 0-1，默认 0.85 */
+  quality?: number
 }
 
-// 通用拖拽上传组件：支持拖拽和点击选择
-export function DropZone({ label, onUpload, uploadedPaths, onRemove }: DropZoneProps) {
+// 客户端图片压缩：用 Canvas 缩放 + 转 JPEG
+// 大图能砍 50-80% 体积，上传快很多
+async function compressImage(file: File, maxSize: number, quality: number): Promise<File> {
+  // 小文件不压缩
+  if (file.size < 200 * 1024) return file
+
+  const img = new window.Image()
+  const url = URL.createObjectURL(file)
+  try {
+    await new Promise((resolve, reject) => {
+      img.onload = resolve
+      img.onerror = reject
+      img.src = url
+    })
+
+    let { width, height } = img
+    // 缩放到 maxSize 以内
+    if (width > maxSize || height > maxSize) {
+      if (width > height) {
+        height = Math.round(height * maxSize / width)
+        width = maxSize
+      } else {
+        width = Math.round(width * maxSize / height)
+        height = maxSize
+      }
+    }
+
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(img, 0, 0, width, height)
+
+    // 转 JPEG（除非原图是透明 PNG）
+    const hasAlpha = file.type === 'image/png'
+    const mimeType = hasAlpha ? 'image/png' : 'image/jpeg'
+    const blob = await new Promise<Blob>((resolve) => {
+      canvas.toBlob((b) => resolve(b!), mimeType, quality)
+    })
+
+    const ext = hasAlpha ? 'png' : 'jpg'
+    const newName = file.name.replace(/\.[^.]+$/, '') + '.' + ext
+    return new File([blob], newName, { type: mimeType })
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+}
+
+// 通用拖拽上传组件：支持拖拽和点击选择，客户端压缩
+export function DropZone({ label, onUpload, uploadedPaths, onRemove, maxSize = 1920, quality = 0.85 }: DropZoneProps) {
   const [dragging, setDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -26,10 +78,10 @@ export function DropZone({ label, onUpload, uploadedPaths, onRemove }: DropZoneP
       return
     }
 
-    // 检查大小
-    const oversized = fileArray.find(f => f.size > 5 * 1024 * 1024)
+    // 检查大小（压缩前）
+    const oversized = fileArray.find(f => f.size > 10 * 1024 * 1024)
     if (oversized) {
-      setError(`${oversized.name} 超过5MB`)
+      setError(`${oversized.name} 超过10MB`)
       return
     }
 
@@ -37,8 +89,13 @@ export function DropZone({ label, onUpload, uploadedPaths, onRemove }: DropZoneP
     setError('')
 
     try {
+      // 并行压缩所有图片
+      const compressed = await Promise.all(
+        fileArray.map(f => compressImage(f, maxSize, quality))
+      )
+
       const formData = new FormData()
-      fileArray.forEach(f => formData.append('images', f))
+      compressed.forEach(f => formData.append('images', f))
 
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -57,7 +114,7 @@ export function DropZone({ label, onUpload, uploadedPaths, onRemove }: DropZoneP
     } finally {
       setUploading(false)
     }
-  }, [onUpload])
+  }, [onUpload, maxSize, quality])
 
   return (
     <div>
@@ -81,7 +138,7 @@ export function DropZone({ label, onUpload, uploadedPaths, onRemove }: DropZoneP
         {uploading ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-            上传中...
+            压缩上传中...
           </div>
         ) : (
           <>

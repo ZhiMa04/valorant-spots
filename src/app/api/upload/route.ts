@@ -12,35 +12,35 @@ export const POST = withAuth(async (req, user) => {
       return NextResponse.json({ error: '请选择至少一张图片' }, { status: 400 })
     }
 
-    const savedPaths: string[] = []
-
+    // 验证所有文件
     for (const file of files) {
       if (!(file instanceof File)) continue
       if (!file.type.startsWith('image/')) {
         return NextResponse.json({ error: '只能上传图片文件' }, { status: 400 })
       }
-
-      // 限制 5MB
       if (file.size > 5 * 1024 * 1024) {
         return NextResponse.json({ error: '图片大小不能超过5MB' }, { status: 400 })
       }
-
-      // 生成唯一文件名
-      const ext = file.name.split('.').pop() || 'png'
-      const filename = `${user.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
-
-      // 上传到 Vercel Blob（显式指定 storeId 和 token，避免环境变量冲突）
-      const blob = await put(filename, file, {
-        access: 'public',
-        contentType: file.type,
-        token: 'vercel_blob_rw_XnZFo3R5kxDwbWzR_2asS4naFd1IsCISHNu8MnDDY4YCuoe',
-        storeId: 'store_XnZFo3R5kxDwbWzR',
-      })
-
-      savedPaths.push(blob.url)
     }
 
-    return NextResponse.json({ paths: savedPaths })
+    // 并行上传所有文件
+    const uploadResults = await Promise.all(
+      files.filter((f): f is File => f instanceof File).map(async (file) => {
+        const ext = file.name.split('.').pop() || 'png'
+        const filename = `${user.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
+
+        const blob = await put(filename, file, {
+          access: 'public',
+          contentType: file.type,
+          token: 'vercel_blob_rw_XnZFo3R5kxDwbWzR_2asS4naFd1IsCISHNu8MnDDY4YCuoe',
+          storeId: 'store_XnZFo3R5kxDwbWzR',
+        })
+
+        return blob.url
+      })
+    )
+
+    return NextResponse.json({ paths: uploadResults })
   } catch (error) {
     console.error('上传失败:', error)
     return NextResponse.json({ error: '服务器错误' }, { status: 500 })
