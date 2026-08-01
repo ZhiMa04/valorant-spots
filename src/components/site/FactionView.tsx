@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useStore } from '@/lib/store'
+import { BackBar } from './BackBar'
 
 // 阵营选择页：进攻方(红) vs 防守方(蓝)
 // 降饱和度颜色 + 标注点位数量
@@ -23,6 +24,7 @@ export function FactionView() {
 
   return (
     <div>
+      <BackBar label="返回特工" />
       <h2 className="text-xl font-bold mb-6">选择阵营</h2>
       <div className="grid grid-cols-2 gap-4 max-w-2xl">
         {/* 进攻方 */}

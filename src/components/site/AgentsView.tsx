@@ -5,6 +5,7 @@ import { useStore } from '@/lib/store'
 import { Agent } from '@/lib/types'
 import { SkeletonGrid, ErrorState } from './Loading'
 import { SmartImage } from './SmartImage'
+import { BackBar } from './BackBar'
 
 // 特工选择页：29个特工，按点位数降序，0置灰
 // 苹果风格圆角正方形卡片，使用 WebP 图片，只显示名字和点位数
@@ -40,6 +41,7 @@ export function AgentsView() {
 
   return (
     <div>
+      <BackBar label="返回地图" />
       <h2 className="text-xl font-bold mb-4">选择特工</h2>
       <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
         {agents.map((agent: any) => {

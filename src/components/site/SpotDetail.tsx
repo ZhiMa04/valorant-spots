@@ -15,8 +15,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Label } from '@/components/ui/label'
 import { DropZone } from './DropZone'
-import { ThumbsUp, ThumbsDown, Flag, ArrowLeft, Trash2, Reply, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Flag, Trash2, Reply, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
+import { BackBar } from './BackBar'
 
 // 举报原因
 const REPORT_REASONS = [
@@ -261,10 +262,8 @@ export function SpotDetail() {
 
   return (
     <div>
-      {/* 返回按钮 */}
-      <Button variant="ghost" size="sm" onClick={goSpots} className="mb-4">
-        <ArrowLeft className="h-4 w-4" /> 返回点位列表
-      </Button>
+      {/* 返回栏 */}
+      <BackBar label="返回点位列表" />
 
       <div className="space-y-6">
         {/* ========== 标题 ========== */}

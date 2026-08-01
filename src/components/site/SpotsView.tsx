@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '@/lib/store'
 import { Spot } from '@/lib/types'
-import { ThumbsUp, AlertTriangle, ArrowLeft } from 'lucide-react'
+import { ThumbsUp, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { BackBar } from './BackBar'
 
 // 点位列表页：按获赞数降序，被举报的显示黄色提示
 export function SpotsView() {
@@ -28,15 +29,10 @@ export function SpotsView() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
-        <Button variant="ghost" size="sm" onClick={() => selectedAgentName && goFaction(selectedAgentId!, selectedAgentName)}>
-          <ArrowLeft className="h-4 w-4" />
-          返回
-        </Button>
-        <h2 className="text-xl font-bold">
-          {selectedFaction === 'ATTACK' ? '进攻方' : '防守方'}点位
-        </h2>
-      </div>
+      <BackBar label="返回阵营" />
+      <h2 className="text-xl font-bold mb-4">
+        {selectedFaction === 'ATTACK' ? '进攻方' : '防守方'}点位
+      </h2>
 
       {spots.length === 0 ? (
         <div className="text-center py-12">

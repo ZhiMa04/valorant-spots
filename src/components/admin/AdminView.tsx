@@ -1,7 +1,6 @@
 'use client'
 
 import { useStore } from '@/lib/store'
-import { Button } from '@/components/ui/button'
 import { ArrowLeft, Home } from 'lucide-react'
 import { UserManagement } from './UserManagement'
 import { AnnouncementManagement } from './AnnouncementManagement'
@@ -18,14 +17,13 @@ export function AdminView() {
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
-        <Button variant="ghost" size="sm" onClick={goMaps} className="gap-1">
+        <button
+          onClick={goMaps}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="h-4 w-4" />
           返回首页
-        </Button>
-        <Button variant="ghost" size="sm" onClick={goMaps} className="gap-1">
-          <Home className="h-4 w-4" />
-          回到首页
-        </Button>
+        </button>
       </div>
 
       {adminView === 'users' && <UserManagement />}
