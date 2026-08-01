@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from '@/lib/store'
 import { MapsView } from '@/components/site/MapsView'
 import { AgentsView } from '@/components/site/AgentsView'
