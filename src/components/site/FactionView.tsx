@@ -1,17 +1,17 @@
 'use client'
 
 import { useStore } from '@/lib/store'
-import { Shield } from 'lucide-react'
+import { Sword, Shield } from 'lucide-react'
 
-// 两把剑交叉图标
+// 两把剑交叉图标（用 lucide 的 Sword 旋转叠加）
 function CrossedSwords({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {/* 左剑：剑柄在右上，剑尖在左下 */}
-      <path d="M16 3 L21 3 L21 8 L11 18 L8 15 Z" />
-      {/* 右剑：剑柄在左上，剑尖在右下 */}
-      <path d="M8 3 L3 3 L3 8 L13 18 L16 15 Z" />
-    </svg>
+    <div className="relative w-10 h-10">
+      {/* 右上到左下 */}
+      <Sword className={`${className} absolute inset-0`} />
+      {/* 左上到右下（镜像翻转） */}
+      <Sword className={`${className} absolute inset-0 -scale-x-100`} />
+    </div>
   )
 }
 
