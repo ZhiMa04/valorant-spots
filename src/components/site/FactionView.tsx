@@ -1,7 +1,23 @@
 'use client'
 
 import { useStore } from '@/lib/store'
-import { Sword, Shield } from 'lucide-react'
+import { Shield } from 'lucide-react'
+
+// 两把剑向下交叉图标
+function CrossedSwords({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {/* 左剑 */}
+      <path d="M14.5 3.5 L3.5 14.5 L3.5 17 L6 17 L17 6 Z" />
+      {/* 左剑护手 */}
+      <path d="M3.5 14.5 L5.5 12.5 M6 17 L8 15" />
+      {/* 右剑 */}
+      <path d="M9.5 3.5 L20.5 14.5 L20.5 17 L18 17 L7 6 Z" />
+      {/* 右剑护手 */}
+      <path d="M20.5 14.5 L18.5 12.5 M18 17 L16 15" />
+    </svg>
+  )
+}
 
 // 阵营选择页：进攻方(红) vs 防守方(蓝)
 export function FactionView() {
@@ -21,7 +37,7 @@ export function FactionView() {
           }}
         >
           <div className="w-20 h-20 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <Sword className="h-10 w-10 text-red-400" />
+            <CrossedSwords className="h-10 w-10 text-red-400" />
           </div>
           <div className="text-2xl font-bold text-red-400 tracking-wide">进攻方</div>
         </button>
