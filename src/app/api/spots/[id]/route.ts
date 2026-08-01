@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { withAuth } from '@/lib/middleware'
+import { getUserStats } from '@/lib/userStats'
 
 // GET /api/spots/[id] — 获取点位详情
 export async function GET(
@@ -42,6 +43,8 @@ export async function GET(
     userAttitude = attitude?.type ?? null
   }
 
+  const creatorStats = await getUserStats(spot.creatorId)
+
   return NextResponse.json({
     id: spot.id,
     title: spot.title,
@@ -57,7 +60,11 @@ export async function GET(
     creatorId: spot.creatorId,
     mapId: spot.mapId,
     agentId: spot.agentId,
-    creator: spot.creator,
+    creator: {
+      ...spot.creator,
+      uploadCount: creatorStats.uploadCount,
+      likeCount: creatorStats.likeCount,
+    },
     map: spot.map,
     agent: spot.agent,
     isReported: spot.reports.length > 0,

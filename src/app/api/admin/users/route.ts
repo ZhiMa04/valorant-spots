@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withAdmin } from '@/lib/middleware'
+import { getBatchUserStats } from '@/lib/userStats'
 
 // GET /api/admin/users?search=X — 获取所有用户列表（支持搜索）
 export const GET = withAdmin(async (req) => {
@@ -29,7 +30,23 @@ export const GET = withAdmin(async (req) => {
     orderBy: { id: 'asc' },
   })
 
-  return NextResponse.json(users.map(formatUser))
+  // 实时计算每个用户的已通过点位数和获赞数
+  const statsMap = await getBatchUserStats(users.map(u => u.id))
+
+  return NextResponse.json(users.map(u => {
+    const stats = statsMap.get(u.id) || { uploadCount: 0, likeCount: 0 }
+    return {
+      id: u.id,
+      phone: u.phone,
+      nickname: u.nickname,
+      role: u.role,
+      status: u.status,
+      uploadCount: stats.uploadCount,
+      likeCount: stats.likeCount,
+      lastNicknameChange: u.lastNicknameChange,
+      createdAt: u.createdAt,
+    }
+  }))
 })
 
 // PATCH /api/admin/users?userId=X — 修改用户（昵称/身份/状态）

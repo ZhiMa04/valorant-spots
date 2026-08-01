@@ -13,10 +13,9 @@ export function SmartImage({ src, alt, className, onClick, loading = 'lazy' }: {
   const [loaded, setLoaded] = useState(false)
 
   return (
-    <div className={`relative ${className || ''}`}>
-      {/* 骨架占位 */}
+    <div className={`relative w-full h-full ${className || ''}`}>
       {!loaded && (
-        <div className="absolute inset-0 bg-muted animate-pulse rounded-lg" />
+        <div className="absolute inset-0 bg-muted animate-pulse" />
       )}
       <img
         src={src}

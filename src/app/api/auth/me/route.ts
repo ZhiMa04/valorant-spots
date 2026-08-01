@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser, getCsrfToken } from '@/lib/auth'
+import { getUserStats } from '@/lib/userStats'
 
 // GET /api/auth/me — 获取当前登录用户信息 + CSRF token
 export async function GET() {
@@ -14,6 +15,7 @@ export async function GET() {
   }
 
   const csrfToken = await getCsrfToken()
+  const stats = await getUserStats(user.id)
 
   return NextResponse.json({
     user: {
@@ -22,8 +24,8 @@ export async function GET() {
       nickname: user.nickname,
       role: user.role,
       status: user.status,
-      uploadCount: user.uploadCount,
-      likeCount: user.likeCount,
+      uploadCount: stats.uploadCount,
+      likeCount: stats.likeCount,
       lastNicknameChange: user.lastNicknameChange,
       createdAt: user.createdAt,
     },
