@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import { ThumbsUp, ThumbsDown, Flag, ArrowLeft, Trash2, Reply } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -50,6 +51,9 @@ export function SpotDetail() {
   const [csrfToken, setCsrfToken] = useState<string | null>(null)
   const [reportOpen, setReportOpen] = useState(false)
   const [reportReason, setReportReason] = useState('')
+  const [editOpen, setEditOpen] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editContent, setEditContent] = useState('')
 
   // 评论相关
   const [newComment, setNewComment] = useState('')
@@ -332,7 +336,11 @@ export function SpotDetail() {
 
           {/* 编辑（创建者或管理员） */}
           {spot.canEdit && (
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => {
+              setEditTitle(spot.title)
+              setEditContent(spot.content)
+              setEditOpen(true)
+            }}>
               编辑点位
             </Button>
           )}
@@ -411,6 +419,55 @@ export function SpotDetail() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setReportOpen(false)}>取消</Button>
             <Button onClick={handleReport}>提交举报</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ========== 编辑弹窗 ========== */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑点位</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">标题</Label>
+              <Input
+                id="edit-title"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                maxLength={50}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-content">正文</Label>
+              <Textarea
+                id="edit-content"
+                rows={6}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                maxLength={2000}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>取消</Button>
+            <Button onClick={async () => {
+              if (!csrfToken) return
+              const res = await fetch(`/api/spots/${selectedSpotId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+                body: JSON.stringify({ title: editTitle, content: editContent }),
+              })
+              const data = await res.json()
+              if (res.ok) {
+                toast.success('修改成功')
+                setEditOpen(false)
+                fetchSpot()
+              } else {
+                toast.error(data.error || '修改失败')
+              }
+            }}>保存</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

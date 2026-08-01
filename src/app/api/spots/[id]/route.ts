@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { withAuth } from '@/lib/middleware'
 
 // GET /api/spots/[id] — 获取点位详情
 export async function GET(
@@ -32,7 +33,6 @@ export async function GET(
     return NextResponse.json({ error: '点位不存在' }, { status: 404 })
   }
 
-  // 获取当前用户的态度（如果已登录）
   const currentUser = await getCurrentUser()
   let userAttitude: 'LIKE' | 'DISLIKE' | null = null
   if (currentUser) {
@@ -65,3 +65,33 @@ export async function GET(
     canEdit: currentUser?.id === spot.creatorId || currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN',
   })
 }
+
+// PATCH /api/spots/[id] — 编辑点位（创建者或管理员）
+export const PATCH = withAuth(async (req, user) => {
+  try {
+    const url = new URL(req.url)
+    const pathParts = url.pathname.split('/')
+    const id = Number(pathParts[pathParts.length - 1])
+
+    const body = await req.json()
+    const { title, content } = body
+
+    const spot = await db.spot.findUnique({ where: { id } })
+    if (!spot) return NextResponse.json({ error: '点位不存在' }, { status: 404 })
+
+    const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN'
+    if (spot.creatorId !== user.id && !isAdmin) {
+      return NextResponse.json({ error: '无权编辑此点位' }, { status: 403 })
+    }
+
+    const data: Record<string, unknown> = {}
+    if (title?.trim()) data.title = title.trim()
+    if (content?.trim()) data.content = content.trim()
+
+    await db.spot.update({ where: { id }, data })
+    return NextResponse.json({ message: '修改成功' })
+  } catch (error) {
+    console.error('编辑点位失败:', error)
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 })
+  }
+})
