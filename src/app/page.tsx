@@ -51,6 +51,10 @@ export default function Home() {
           <main className="flex-1 min-w-0">
             {showBackButtons && (
               <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="sm" onClick={() => useStore.getState().goBack()} className="gap-1">
+                  <ArrowLeft className="h-4 w-4" />
+                  返回上一页
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => useStore.getState().goMaps()} className="gap-1">
                   <HomeIcon className="h-4 w-4" />
                   回到首页
