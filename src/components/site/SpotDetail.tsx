@@ -55,6 +55,7 @@ export function SpotDetail() {
   const [editTitle, setEditTitle] = useState('')
   const [editContent, setEditContent] = useState('')
   const [lightboxImg, setLightboxImg] = useState<string | null>(null)
+  const [zoom, setZoom] = useState(1)
 
   // 评论相关
   const [newComment, setNewComment] = useState('')
@@ -492,16 +493,44 @@ export function SpotDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* ========== 图片查看器（点击放大） ========== */}
-      <Dialog open={!!lightboxImg} onOpenChange={() => setLightboxImg(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+      {/* ========== 图片查看器（支持缩放） ========== */}
+      <Dialog open={!!lightboxImg} onOpenChange={(open) => { if (!open) { setLightboxImg(null); setZoom(1) } }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden flex flex-col items-center justify-center gap-3">
           {lightboxImg && (
-            <img
-              src={lightboxImg}
-              alt="查看大图"
-              className="w-full h-full object-contain"
-              onClick={() => setLightboxImg(null)}
-            />
+            <>
+              <div
+                className="overflow-auto flex-1 flex items-center justify-center w-full"
+                onWheel={(e) => {
+                  e.preventDefault()
+                  const delta = e.deltaY > 0 ? -0.2 : 0.2
+                  setZoom(z => Math.min(Math.max(z + delta, 0.5), 5))
+                }}
+              >
+                <img
+                  src={lightboxImg}
+                  alt="查看大图"
+                  className="max-w-full max-h-[80vh] object-contain transition-transform cursor-grab active:cursor-grabbing"
+                  style={{ transform: `scale(${zoom})` }}
+                  draggable={false}
+                />
+              </div>
+              {/* 缩放控制条 */}
+              <div className="flex items-center gap-4 py-2 px-4 bg-muted/80 rounded-t-lg">
+                <button
+                  onClick={() => setZoom(z => Math.max(z - 0.25, 0.5))}
+                  className="text-lg font-bold hover:text-primary w-8 h-8 rounded-full bg-muted flex items-center justify-center"
+                >−</button>
+                <span className="text-sm font-mono w-16 text-center">{Math.round(zoom * 100)}%</span>
+                <button
+                  onClick={() => setZoom(z => Math.min(z + 0.25, 5))}
+                  className="text-lg font-bold hover:text-primary w-8 h-8 rounded-full bg-muted flex items-center justify-center"
+                >+</button>
+                <button
+                  onClick={() => setZoom(1)}
+                  className="text-xs hover:text-primary px-2 py-1 rounded bg-muted"
+                >重置</button>
+              </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
