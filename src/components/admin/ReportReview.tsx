@@ -98,6 +98,30 @@ export function ReportReview() {
               <div><span className="text-muted-foreground text-sm">地图/特工：</span>{detail.spot.map.name} / {detail.spot.agent.name}</div>
               <div><span className="text-muted-foreground text-sm">举报原因：</span>{formatReason(detail.reason)}</div>
               <div className="text-sm whitespace-pre-wrap bg-muted p-2 rounded">{detail.spot.content}</div>
+
+              {/* 描点图预览 */}
+              {detail.spot.markerImages?.length > 0 && (
+                <div>
+                  <div className="text-sm font-medium mb-2">描点图</div>
+                  <div className="flex flex-col gap-2">
+                    {detail.spot.markerImages.map((img: string, i: number) => (
+                      <img key={i} src={img} alt={`描点图${i+1}`} className="rounded-lg border w-full" loading="lazy" />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 效果图预览 */}
+              {detail.spot.effectImages?.length > 0 && (
+                <div>
+                  <div className="text-sm font-medium mb-2">效果图</div>
+                  <div className="flex flex-col gap-2">
+                    {detail.spot.effectImages.map((img: string, i: number) => (
+                      <img key={i} src={img} alt={`效果图${i+1}`} className="rounded-lg border w-full" loading="lazy" />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
