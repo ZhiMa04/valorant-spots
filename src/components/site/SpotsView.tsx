@@ -44,32 +44,32 @@ export function SpotsView() {
           <p className="text-xs text-muted-foreground">成为第一个贡献者，点击右上角"发布点位"</p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col gap-3">
           {spots.map(spot => (
             <div
               key={spot.id}
-              className="rounded-lg border hover:shadow-md transition-all cursor-pointer group"
+              className="rounded-xl border hover:border-primary hover:shadow-md transition-all cursor-pointer group p-5"
               onClick={() => goDetail(spot.id, spot.title)}
             >
-              <div className="p-4">
-                {/* 举报提示 */}
-                {spot.isReported && (
-                  <div className="flex items-center gap-1 text-xs text-yellow-600 mb-2">
-                    <AlertTriangle className="h-3 w-3" />
-                    <span>该点位受到用户举报，请等待管理员审核</span>
-                  </div>
-                )}
+              {/* 举报提示 */}
+              {spot.isReported && (
+                <div className="flex items-center gap-1 text-xs text-yellow-600 mb-2">
+                  <AlertTriangle className="h-3 w-3" />
+                  <span>该点位受到用户举报，请等待管理员审核</span>
+                </div>
+              )}
 
+              <div className="flex items-center justify-between gap-4">
                 {/* 标题 */}
-                <h3 className="font-semibold text-sm group-hover:text-primary transition-colors mb-2 line-clamp-2">
+                <h3 className="font-semibold text-lg group-hover:text-primary transition-colors truncate">
                   {spot.title}
                 </h3>
 
                 {/* 底部信息 */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground flex-shrink-0">
                   <span>by {spot.creator?.nickname || '未知'}</span>
                   <span className="flex items-center gap-1">
-                    <ThumbsUp className="h-3 w-3" />
+                    <ThumbsUp className="h-4 w-4" />
                     {spot.likeCount}
                   </span>
                 </div>
