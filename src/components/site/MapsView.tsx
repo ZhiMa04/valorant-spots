@@ -6,14 +6,7 @@ import { GameMap } from '@/lib/types'
 import { MapPin } from 'lucide-react'
 import { SkeletonGrid, ErrorState } from './Loading'
 
-// 地图颜色（图片加载失败时的备用色）
-const MAP_COLORS = [
-  '#c4a0b0', '#6b8fbf', '#e8a0b0', '#e8946b', '#a0c8d8',
-  '#7fa8b8', '#b0a8d0', '#e8c97a', '#d4a574', '#c4b090',
-  '#7eb8a0', '#6a5e7a', '#c4a35a'
-]
-
-// 地图选择页：13个地图网格
+// 地图选择页：13个地图网格，使用 WebP 图片
 export function MapsView() {
   const { goAgents } = useStore()
   const [maps, setMaps] = useState<GameMap[]>([])
@@ -37,7 +30,6 @@ export function MapsView() {
       <SkeletonGrid count={13} />
     </div>
   )
-
   if (error) return <ErrorState message={error} onRetry={fetchMaps} />
 
   return (
@@ -50,16 +42,13 @@ export function MapsView() {
             onClick={() => goAgents(map.id, map.name)}
             className="group relative overflow-hidden rounded-lg border hover:border-primary hover:shadow-md transition-all"
           >
-            {/* 地图图片 */}
-            <div
-              className="aspect-[4/3] flex items-center justify-center overflow-hidden"
-              style={{ background: MAP_COLORS[i % MAP_COLORS.length] }}
-            >
+            {/* 地图图片（透明底色） */}
+            <div className="aspect-[4/3] overflow-hidden bg-muted">
               <img
-                src={`/maps/${map.name}.png`}
+                src={`/maps/${map.name}.webp`}
                 alt={map.name}
+                loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
               />
             </div>
 

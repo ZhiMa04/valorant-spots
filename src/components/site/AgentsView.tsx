@@ -5,16 +5,8 @@ import { useStore } from '@/lib/store'
 import { Agent } from '@/lib/types'
 import { SkeletonGrid, ErrorState } from './Loading'
 
-// 特工角色颜色（图片加载失败时的备用色）
-const ROLE_COLORS: Record<string, string> = {
-  DUELIST: '#e8743c',
-  SENTINEL: '#5b8aad',
-  CONTROLLER: '#6b5e8a',
-  INITIATOR: '#7eb87e',
-}
-
 // 特工选择页：29个特工，按点位数降序，0置灰
-// 苹果风格圆角正方形卡片，使用图片，只显示名字和点位数
+// 苹果风格圆角正方形卡片，使用 WebP 图片，只显示名字和点位数
 export function AgentsView() {
   const { selectedMapId, goFaction } = useStore()
   const [agents, setAgents] = useState<Agent[]>([])
@@ -43,40 +35,31 @@ export function AgentsView() {
       <SkeletonGrid count={12} />
     </div>
   )
-
   if (error) return <ErrorState message={error} onRetry={fetchAgents} />
 
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">选择特工</h2>
-      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2.5">
+      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
         {agents.map((agent: any) => {
           const hasSpots = agent.spotCount > 0
-          const color = agent.role ? ROLE_COLORS[agent.role] : '#888888'
-
           return (
             <button
               key={agent.id}
               onClick={() => goFaction(agent.id, agent.name)}
-              className={`rounded-xl border p-1.5 text-center transition-all ${
+              className={`rounded-lg border p-1.5 text-center transition-all ${
                 hasSpots
                   ? 'hover:border-primary hover:shadow-md cursor-pointer'
                   : 'opacity-40 hover:opacity-60 cursor-pointer'
               }`}
             >
-              {/* 特工图片：圆角正方形 */}
-              <div
-                className="w-full aspect-square rounded-lg flex items-center justify-center mb-1 overflow-hidden"
-                style={{ background: color }}
-              >
+              {/* 特工图片：圆角正方形（透明底色） */}
+              <div className="w-full aspect-square rounded-lg overflow-hidden bg-muted mb-1">
                 <img
-                  src={`/agents/${agent.name}.png`}
+                  src={`/agents/${agent.name}.webp`}
                   alt={agent.name}
+                  loading="lazy"
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const img = e.target as HTMLImageElement
-                    img.style.display = 'none'
-                  }}
                 />
               </div>
 
