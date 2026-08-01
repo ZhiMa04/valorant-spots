@@ -7,6 +7,12 @@ export async function GET() {
   try {
     const userCount = await db.user.count()
     if (userCount > 0) {
+      // 如果管理员手机号还是旧的，更新为新号
+      const admin = await db.user.findFirst({ where: { role: 'SUPER_ADMIN' } })
+      if (admin && admin.phone === '13800000001') {
+        await db.user.update({ where: { id: admin.id }, data: { phone: '10000000001' } })
+        return NextResponse.json({ message: '管理员手机号已更新为 10000000001', admin: { phone: '10000000001', password: 'admin123' } })
+      }
       return NextResponse.json({ message: '数据库已初始化，无需重复操作', userCount })
     }
 
@@ -14,7 +20,7 @@ export async function GET() {
     const passwordHash = await bcrypt.hash('admin123', 10)
     const admin = await db.user.create({
       data: {
-        phone: '13800000001',
+        phone: '10000000001',
         nickname: '站长',
         salt: '',
         passwordHash,
