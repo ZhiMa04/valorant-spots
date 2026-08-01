@@ -29,6 +29,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        {/* 自动适配浏览器深色/浅色模式 */}
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){try{var d=window.matchMedia('(prefers-color-scheme: dark)');if(d.matches)document.documentElement.classList.add('dark');d.addEventListener('change',function(e){if(e.matches)document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');});}catch(e){}})();`
+        }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
