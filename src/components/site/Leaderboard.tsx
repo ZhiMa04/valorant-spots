@@ -28,6 +28,7 @@ export function Leaderboard() {
     <div className="rounded-xl border bg-card">
       <div className="p-3 border-b text-center">
         <h3 className="font-semibold text-sm">贡献榜</h3>
+        <p className="text-[11px] text-muted-foreground mt-1">由衷感谢所有为本站提供力量的用户！</p>
       </div>
       <div className="p-2">
         <Tabs value={type} onValueChange={(v) => setType(v as 'uploads' | 'likes')}>

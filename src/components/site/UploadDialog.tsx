@@ -57,7 +57,13 @@ export function UploadDialog() {
       })
 
       if (res.ok) {
-        toast.success((await res.json()).message)
+        const data = await res.json()
+        // 会员及以上无需审核，普通用户需审核
+        const isMember = user.role === 'MEMBER' || user.role === 'ADMIN' || user.role === 'SUPER_ADMIN'
+        const msg = isMember
+          ? '感谢您为本站付出的每一份力量！'
+          : '上传成功，请等待管理员审核。感谢您为本站付出的每一份力量！'
+        toast.success(msg)
         setUploadDialog(false)
         setForm({ mapId: '', agentId: '', faction: '', title: '', content: '' })
         setMarkerPaths([])
