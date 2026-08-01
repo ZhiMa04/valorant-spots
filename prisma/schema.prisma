@@ -1,0 +1,209 @@
+// 酷点无畏契约点位库 - Prisma Schema
+// Phase 1: 项目初始化与数据库建模
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== 用户表 ====================
+// 手机号: 登录用，唯一，不可更改
+// 昵称: 0-6个字，不可重复，每30天可改一次
+// 身份: 普通用户(灰) | 会员(金) | 管理员(绿) | 高级管理员(紫)
+// 游客不需要存库
+model User {
+  id                  Int      @id @default(autoincrement()) // 自增ID，前端格式化为5位
+  phone               String   @unique // 手机号（登录用，不可更改）
+  nickname            String   @unique // 昵称，0-6个字，不可重复，可改
+  passwordHash        String   // 密码哈希（SHA-256 + salt）
+  salt                String   // 每用户独立盐值
+  role                String   @default("USER") // USER(普通用户) | MEMBER(会员) | ADMIN(管理员) | SUPER_ADMIN(高级管理员)
+  status              String   @default("NORMAL") // NORMAL(正常) | BLOCKED(被拉黑)
+  lastNicknameChange  DateTime? // 昵称最后修改时间，每30天可改一次
+  uploadCount         Int      @default(0) // 上传点位数
+  likeCount           Int      @default(0) // 获赞总数
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  spots            Spot[]
+  comments         Comment[]
+  attitudes        LikeDislike[]
+  reports          Report[]        @relation("Reporter")
+  handledReports   Report[]        @relation("Handler")
+  announcements    Announcement[]
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  sessions         Session[]
+  replyToComments  Comment[]       @relation("ReplyToUser") // 被@回复的评论
+}
+
+// ==================== 地图表（13个预设） ====================
+model GameMap {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // 地图名（莲华古城等）
+  color       String   @default("#888888") // 地图主题色
+  imageUrl    String?  // 地图图片路径 /images/map/xxx.png
+  sortOrder   Int      @default(0) // 排序序号
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  spots Spot[]
+}
+
+// ==================== 特工表（29个预设） ====================
+model Agent {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // 特工名（不死鸟等）
+  color       String   @default("#888888") // 特工主题色
+  role        String?  // 角色：DUELIST(决斗者) | SENTINEL(哨位) | CONTROLLER(控场) | INITIATOR(先锋)
+  iconUrl     String?  // 特工图标路径 /images/agent/xxx.png
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  spots Spot[]
+}
+
+// ==================== 点位表 ====================
+// 阵营: ATTACK(进攻方) | DEFENSE(防守方) — 字符串字段，不单独建表
+// 状态: PENDING(审核中) | APPROVED(已通过) | REJECTED(未通过)
+model Spot {
+  id              Int      @id @default(autoincrement())
+  title           String   // 标题
+  content         String   // 正文描述
+  faction         String   // ATTACK(进攻方) | DEFENSE(防守方)
+  markerImages    String   // 描点图路径数组，JSON格式 ["path1","path2"]
+  effectImages    String   @default("[]") // 效果图路径数组，JSON格式
+  status          String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  rejectReason    String?  // 拒绝原因（status为REJECTED时填写）
+  likeCount       Int      @default(0) // 获赞数
+  dislikeCount    Int      @default(0) // 点踩数
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creatorId       Int
+  mapId           Int
+  agentId         Int
+
+  creator    User     @relation(fields: [creatorId], references: [id])
+  map        GameMap  @relation(fields: [mapId], references: [id])
+  agent      Agent    @relation(fields: [agentId], references: [id])
+  comments   Comment[]
+  attitudes  LikeDislike[]
+  reports    Report[]
+}
+
+// ==================== 点赞/点踩记录表 ====================
+// 逻辑A: 同一用户对同一点位只能有一个态度
+// 点踩会覆盖点赞（赞数-1，踩数+1），再次点击相同态度则取消
+model LikeDislike {
+  id        Int      @id @default(autoincrement())
+  spotId    Int
+  userId    Int
+  type      String   // LIKE(赞) | DISLIKE(踩)
+  createdAt DateTime @default(now())
+
+  spot Spot @relation(fields: [spotId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([spotId, userId]) // 同一用户对同一点位只能有一个态度
+}
+
+// ==================== 评论表（无限嵌套回复） ====================
+// 父子级关联实现盖楼回复，逻辑删除（isDeleted）
+model Comment {
+  id            Int      @id @default(autoincrement())
+  content       String   // 评论内容
+  parentId      Int?     // 父评论ID，null表示一级评论
+  replyToUserId Int?     // 回复目标用户ID（用于"@用户名"展示）
+  isDeleted     Boolean  @default(false) // 逻辑删除标记
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  spotId        Int
+  userId        Int
+
+  spot         Spot     @relation(fields: [spotId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
+  parent       Comment?  @relation("CommentReply", fields: [parentId], references: [id])
+  replies      Comment[] @relation("CommentReply")
+  replyToUser  User?     @relation("ReplyToUser", fields: [replyToUserId], references: [id])
+}
+
+// ==================== 举报表 ====================
+// 24小时内不可重复举报同一点位（应用层校验）
+// 举报原因: SPAM(垃圾内容) | INAPPROPRIATE(不当内容) | MISLEADING(误导信息) | OTHER(其他)
+// 处理状态: PENDING(待处理) | CONFIRMED(确认无误) | DELETED(已删除点位)
+model Report {
+  id          Int      @id @default(autoincrement())
+  reporterId  Int
+  spotId      Int
+  reason      String   // 举报原因
+  status      String   @default("PENDING") // PENDING | CONFIRMED | DELETED
+  handlerId   Int?     // 处理人ID
+  handledAt   DateTime? // 处理时间
+  createdAt   DateTime @default(now())
+
+  reporter User  @relation("Reporter", fields: [reporterId], references: [id])
+  spot    Spot   @relation(fields: [spotId], references: [id])
+  handler User?  @relation("Handler", fields: [handlerId], references: [id])
+}
+
+// ==================== 公告表 ====================
+// 管理员发布的通知，支持多图
+model Announcement {
+  id          Int      @id @default(autoincrement())
+  title       String   // 标题
+  content     String   // 正文
+  images      String   @default("[]") // 图片路径数组，JSON格式
+  creatorId   Int      // 创建人ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator User @relation(fields: [creatorId], references: [id])
+}
+
+// ==================== 审核操作记录表 ====================
+// 记录管理员的审核动作，数据保留24小时（应用层定期清理）
+// action: SPOT_AUDIT(点位审核) | REPORT_AUDIT(举报审核)
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  handlerId   Int      // 处理人ID
+  action      String   // 审核动作类型
+  targetId    Int      // 操作目标ID（点位ID或举报ID）
+  result      String   // 审核结果
+  createdAt   DateTime @default(now())
+
+  handler User @relation(fields: [handlerId], references: [id])
+}
+
+// ==================== 用户通知表 ====================
+// 记录用户需要接收的消息，isRead用于显示小红点
+// type: SPOT_REJECTED(点位未通过) | REPORT_HANDLED(举报已处理) | ANNOUNCEMENT(新公告) | OTHER
+model Notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int      // 接收通知的用户ID
+  type        String   // 通知类型
+  title       String   // 通知标题
+  content     String   // 通知内容
+  isRead      Boolean  @default(false) // 是否已读（用于显示小红点）
+  relatedId   Int?     // 关联ID（点位ID、举报ID等）
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ==================== 会话表（登录态管理） ====================
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}

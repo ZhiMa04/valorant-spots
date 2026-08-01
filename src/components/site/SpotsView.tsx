@@ -1,0 +1,83 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useStore } from '@/lib/store'
+import { Spot } from '@/lib/types'
+import { ThumbsUp, AlertTriangle, ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+// 点位列表页：按获赞数降序，被举报的显示黄色提示
+export function SpotsView() {
+  const { selectedMapId, selectedAgentId, selectedFaction, goDetail, goFaction, selectedAgentName, triggerRefresh } = useStore()
+  const [spots, setSpots] = useState<Spot[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (selectedMapId && selectedAgentId && selectedFaction) {
+      setLoading(true)
+      fetch(`/api/spots?mapId=${selectedMapId}&agentId=${selectedAgentId}&faction=${selectedFaction}`)
+        .then(res => res.json())
+        .then(data => setSpots(data))
+        .finally(() => setLoading(false))
+    }
+  }, [selectedMapId, selectedAgentId, selectedFaction, triggerRefresh])
+
+  if (loading) {
+    return <div className="text-center py-12 text-muted-foreground">加载中...</div>
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <Button variant="ghost" size="sm" onClick={() => selectedAgentName && goFaction(selectedAgentId!, selectedAgentName)}>
+          <ArrowLeft className="h-4 w-4" />
+          返回
+        </Button>
+        <h2 className="text-xl font-bold">
+          {selectedFaction === 'ATTACK' ? '进攻方' : '防守方'}点位
+        </h2>
+      </div>
+
+      {spots.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground mb-4">该分类下还没有点位</p>
+          <p className="text-xs text-muted-foreground">成为第一个贡献者，点击右上角"发布点位"</p>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {spots.map(spot => (
+            <div
+              key={spot.id}
+              className="rounded-lg border hover:shadow-md transition-all cursor-pointer group"
+              onClick={() => goDetail(spot.id, spot.title)}
+            >
+              <div className="p-4">
+                {/* 举报提示 */}
+                {spot.isReported && (
+                  <div className="flex items-center gap-1 text-xs text-yellow-600 mb-2">
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>该点位受到用户举报，请等待管理员审核</span>
+                  </div>
+                )}
+
+                {/* 标题 */}
+                <h3 className="font-semibold text-sm group-hover:text-primary transition-colors mb-2 line-clamp-2">
+                  {spot.title}
+                </h3>
+
+                {/* 底部信息 */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>by {spot.creator?.nickname || '未知'}</span>
+                  <span className="flex items-center gap-1">
+                    <ThumbsUp className="h-3 w-3" />
+                    {spot.likeCount}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

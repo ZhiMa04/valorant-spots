@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>酷点 · 无畏契约点位库</title>
+<style>
+:root{
+  --bg:#f0f2f5;--card:#fff;--card-hover:#f7f8fa;--text:#1d1d1f;--text-2:#6e6e73;--text-3:#86868b;
+  --border:#e0e0e2;--border-2:#f0f0f2;--accent:#FF4655;--accent-soft:#fff0f1;--accent-d:#d63946;
+  --green:#2d8c4e;--gold:#c8960c;--purple:#8b5cf6;--gray:#8e8e93;--blue:#4a90d9;
+  --sh-sm:0 1px 3px rgba(0,0,0,.04);--sh-md:0 4px 16px rgba(0,0,0,.06);--sh-lg:0 12px 40px rgba(0,0,0,.08);--sh-xl:0 24px 64px rgba(0,0,0,.14);
+  --r-sm:10px;--r:14px;--r-lg:18px;--r-2xl:28px;--tr:.2s cubic-bezier(.25,.1,.25,1);
+  --font:'Inter','SF Pro Display','PingFang SC','Microsoft YaHei',sans-serif;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#1a1a1c;--card:#2c2c2e;--card-hover:#323234;--text:#f5f5f7;--text-2:#a1a1a6;--text-3:#6e6e73;
+  --border:#3a3a3c;--border-2:#2e2e30;--accent-soft:#3d1a1d;--green:#3da55d;--gold:#d4a840;--purple:#a478f0;--gray:#98989d;--blue:#5a9de8;}
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;letter-spacing:-.01em;transition:background .3s,color .3s}
+
+/* ========== Navbar ========== */
+.nav{position:sticky;top:0;z-index:100;background:var(--card);backdrop-filter:blur(20px);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border);box-shadow:var(--sh-sm)}
+.nav-logo{display:flex;align-items:baseline;gap:4px;cursor:pointer;user-select:none;flex-shrink:0}
+.nav-logo .s{font-weight:600;font-size:.7rem;color:var(--text-2)}
+.nav-logo .b{font-weight:700;font-size:1rem;color:var(--text)}
+.steps{display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--border);padding:6px 16px;border-radius:32px;position:absolute;left:50%;transform:translateX(-50%);transition:all .3s}
+.step-dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.step-dot.active{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);animation:pulse 2s infinite}
+.step-dot.done{background:var(--accent);cursor:pointer}
+.step-line{width:16px;height:2px;background:var(--border);border-radius:2px;margin:0 2px;transition:.4s}
+.step-line.done{background:var(--accent)}
+.step-label{font-size:.68rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.02em;margin-left:3px;transition:.3s}
+.step-label.active{color:var(--text)}
+@keyframes pulse{0%{box-shadow:0 0 0 3px var(--accent-soft)}50%{box-shadow:0 0 0 6px var(--accent-soft)}100%{box-shadow:0 0 0 3px var(--accent-soft)}}
+.nav-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.btn{padding:8px 18px;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-size:.85rem;transition:var(--tr);font-family:inherit;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:var(--sh-md)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{background:var(--border-2)}
+.btn-danger{background:var(--accent);color:#fff}
+.btn-sm{padding:4px 12px;font-size:.72rem;border-radius:14px;border:none;cursor:pointer;font-weight:600}
+.btn-sm.primary{background:var(--text);color:var(--bg)}
+.btn-sm.danger{background:var(--accent);color:#fff}
+.announce-btn{background:var(--blue);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;position:relative}
+.announce-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--accent);border-radius:50%;display:none;border:1px solid var(--card)}
+.manage-wrap{position:relative}
+.manage-btn{background:var(--green);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer}
+.manage-menu{position:absolute;top:110%;right:0;background:var(--card);border-radius:var(--r);box-shadow:var(--sh-xl);border:1px solid var(--border);min-width:140px;z-index:200;display:none}
+.manage-menu.show{display:block;animation:scaleIn .15s}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.manage-menu button{display:block;width:100%;padding:9px 14px;background:none;border:none;text-align:left;font-size:.8rem;color:var(--text);cursor:pointer}
+.manage-menu button:hover{background:var(--accent-soft);color:var(--accent)}
+.avatar-btn{width:38px;height:38px;border-radius:50%;border:none;color:#fff;font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.avatar-btn:hover{transform:scale(1.08)}
+.user-panel{position:absolute;top:110%;right:0;background:var(--card);border-radius:var(--r);box-shadow:var(--sh-xl);border:1px solid var(--border);min-width:200px;z-index:200;padding:16px;display:none;flex-direction:column;gap:10px;align-items:flex-start}
+.user-panel.show{display:flex;animation:scaleIn .15s}
+.user-panel .nick{font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:6px}
+.user-panel .uid{font-size:.75rem;color:var(--text-3);background:var(--bg);padding:3px 10px;border-radius:10px}
+.role-tag{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:10px}
+.role-tag.normal{color:var(--gray);background:rgba(142,142,147,.12)}
+.role-tag.member{color:var(--gold);background:rgba(200,150,12,.12)}
+.role-tag.admin{color:var(--green);background:rgba(45,140,78,.12)}
+.role-tag.superadmin{color:var(--purple);background:rgba(139,92,246,.12)}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--accent);cursor:pointer;font-size:.82rem;font-weight:600;padding:8px 12px;border-radius:18px;width:100%;transition:var(--tr)}
+.logout-btn:hover{background:var(--accent-soft)}
+
+/* ========== Layout ========== */
+.main{max-width:1200px;width:calc(100% - 310px);margin:0 auto;padding:24px 0 80px}
+.lb-side{position:fixed;right:20px;top:50%;transform:translateY(-50%);width:290px;max-height:calc(100vh - 160px);overflow-y:auto;z-index:50}
+.lb-card{background:var(--card);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--sh-md);padding:18px}
+.lb-title{font-size:1.1rem;font-weight:700;text-align:center;margin-bottom:10px}
+.lb-tabs{display:flex;border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--border);margin-bottom:12px}
+.lb-tab{flex:1;padding:7px;text-align:center;font-weight:600;font-size:.75rem;cursor:pointer;background:var(--bg);border:none;color:var(--text-2)}
+.lb-tab.active{background:var(--accent);color:#fff}
+.lb-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.lb-item{display:flex;align-items:center;gap:6px;font-size:.78rem;padding:5px 0;border-bottom:1px solid var(--border-2);cursor:pointer;transition:.15s}
+.lb-item:hover{background:var(--border-2)}
+.lb-rank{font-weight:700;color:var(--accent);width:18px;text-align:center}
+.lb-user{flex:1;overflow:hidden;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.lb-user .role-tag{font-size:.55rem;padding:1px 5px}
+.lb-count{font-weight:700;min-width:26px;text-align:right}
+.lb-thanks{text-align:center;font-size:.72rem;color:var(--text-2);font-style:italic;margin-top:4px}
+
+/* ========== Cards & Grid ========== */
+.view{animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.sec-header{text-align:center;margin-bottom:28px}
+.sec-title{font-size:1.8rem;font-weight:700}
+.sec-sub{font-size:.9rem;color:var(--text-2);margin-top:4px}
+.grid{display:grid;gap:14px}
+.grid.maps{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.grid.agents{grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px}
+.grid.spots{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.card{background:var(--card);border-radius:var(--r-lg);border:1px solid var(--border);cursor:pointer;transition:var(--tr);box-shadow:var(--sh-sm);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;user-select:none}
+.card:hover{transform:translateY(-2px);box-shadow:var(--sh-lg);background:var(--card-hover)}
+.card:active{transform:scale(.97)}
+.card.selected{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.card.selected::after{content:'✓';position:absolute;top:8px;right:10px;font-size:.75rem;font-weight:700;color:var(--accent);background:var(--card);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.card-icon{position:relative;overflow:hidden;border-radius:var(--r-sm);background:rgba(128,128,128,.1);display:flex;align-items:center;justify-content:center}
+.card-icon img{width:100%;height:100%;object-fit:cover;display:block}
+.card-icon .noimg{display:none;color:var(--text-3);font-size:.65rem}
+.map-card{padding:0;gap:0}
+.map-card .card-icon{height:110px;border-radius:var(--r)}
+.map-card .card-info{padding:14px 12px 16px;width:100%;text-align:center}
+.map-card .card-label{font-weight:600;font-size:.85rem}
+.map-card .stat{font-size:.7rem;color:var(--text-3);margin-top:2px}
+.agent-card{padding:8px 4px;gap:4px}
+.agent-card .card-icon{width:48px;height:48px;border-radius:12px}
+.agent-card .card-label{font-size:.68rem;font-weight:600}
+.agent-card .stat{font-size:.58rem;color:var(--text-3)}
+.agent-card.nospot .card-icon img{filter:grayscale(100%);opacity:.4}
+.side-card{padding:22px 16px;min-height:110px;justify-content:center;gap:8px}
+.side-card .card-icon{width:50px;height:50px;border-radius:16px;font-size:1rem;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+.spot-card{text-align:left;padding:0}
+.spot-thumb{height:180px;background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:10px;position:relative;background-color:rgba(128,128,128,.08)}
+.spot-thumb img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.spot-thumb .noimg{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-3);font-size:.7rem}
+.spot-tag{background:rgba(255,255,255,.9);backdrop-filter:blur(8px);color:#1d1d1f;padding:3px 8px;border-radius:14px;font-size:.62rem;font-weight:600;position:relative;z-index:1}
+.report-tag{background:#f0ad4e;color:#000;font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:10px;position:absolute;top:6px;right:6px;z-index:2}
+.spot-info{padding:14px}
+.spot-name{font-weight:600;font-size:.92rem;margin-bottom:3px}
+.spot-desc{font-size:.76rem;color:var(--text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.spot-card.reported{opacity:.7;pointer-events:none}
+.spot-card.reported.admin{opacity:1;pointer-events:auto}
+
+/* ========== Detail ========== */
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.back-row,.home-row{display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent);font-weight:600;font-size:.88rem;padding:6px 14px;border-radius:18px;transition:var(--tr);background:var(--accent-soft);border:1px solid var(--accent);user-select:none}
+.back-row:hover,.home-row:hover{background:var(--accent);color:#fff}
+.detail-box{background:var(--card);border-radius:var(--r-lg);padding:22px;box-shadow:var(--sh-md);border:1px solid var(--border)}
+.detail-desc{font-size:1.05rem;line-height:1.6;margin:12px 0;color:var(--text)}
+.detail-imgs{display:flex;flex-direction:column;gap:16px;margin:16px 0}
+.detail-img-item{width:100%;border-radius:var(--r);overflow:hidden;background:rgba(128,128,128,.06);position:relative}
+.detail-img-item img{width:100%;max-height:450px;object-fit:contain;display:block}
+.detail-img-item .img-idx{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);color:#fff;width:26px;height:26px;border-radius:50%;font-size:.75rem;display:flex;align-items:center;justify-content:center;font-weight:600;z-index:1}
+.detail-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+.creator-card{margin-top:20px;padding:14px 18px;border-radius:var(--r);background:var(--bg);border:1px solid var(--border-2);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.creator-left{display:flex;align-items:center;gap:10px}
+.creator-avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0}
+.creator-info{display:flex;flex-direction:column;gap:3px}
+.creator-name{font-weight:700;font-size:.88rem}
+.creator-meta{font-size:.75rem;color:var(--text-2)}
+.vote-area{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.vote-btn{display:flex;align-items:center;gap:5px;background:none;border:1px solid var(--border);border-radius:18px;padding:5px 12px;font-size:1rem;font-weight:600;cursor:pointer;transition:var(--tr);color:#aaa;user-select:none}
+.vote-btn:hover{background:var(--border-2)}
+.vote-btn.liked{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.vote-btn.disliked{color:#666;border-color:#666}
+.report-btn{display:flex;align-items:center;gap:4px;background:none;border:1px solid var(--border);border-radius:18px;padding:5px 12px;font-size:.82rem;font-weight:600;cursor:pointer;transition:var(--tr);color:var(--text-2)}
+.report-btn:hover{background:var(--border-2);color:var(--accent)}
+
+/* ========== Comments (2-level nested) ========== */
+.comment-section{margin-top:20px;border-top:1px solid var(--border);padding-top:18px}
+.comment-section h3{font-size:1.05rem;font-weight:700;margin-bottom:12px}
+.comment-input-area{margin-bottom:16px}
+.comment-input-area textarea{width:100%;padding:10px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:.85rem;resize:vertical;min-height:60px}
+.comment-input-area textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.comment-input-area .actions{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}
+.reply-box{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.reply-box .reply-prefix{font-size:.78rem;color:var(--accent);font-weight:600;white-space:nowrap}
+.reply-box textarea{flex:1;padding:8px 10px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:.8rem;resize:vertical;min-height:44px}
+.reply-box textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.reply-box .actions{display:flex;gap:4px}
+.comment-list{display:flex;flex-direction:column;gap:10px}
+.comment-item{padding:12px;border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--border-2)}
+.comment-item.deleted{opacity:.5}
+.comment-item.deleted .c-text{font-style:italic;color:var(--text-3)}
+.c-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.c-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.72rem;flex-shrink:0}
+.c-name{font-weight:600;font-size:.8rem}
+.c-time{font-size:.68rem;color:var(--text-3)}
+.c-text{font-size:.82rem;line-height:1.4;color:var(--text)}
+.c-actions{display:flex;gap:8px;margin-top:6px}
+.c-actions button{font-size:.7rem;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text-2);display:flex;align-items:center;gap:2px}
+.c-actions button:hover{color:var(--accent)}
+.replies{margin-left:36px;margin-top:8px;display:flex;flex-direction:column;gap:8px;border-left:2px solid var(--border-2);padding-left:10px}
+.reply-item{padding:8px 10px;border-radius:var(--r-sm);background:var(--card);border:1px solid var(--border-2)}
+.reply-item .c-header{margin-bottom:3px}
+.reply-to{font-size:.7rem;color:var(--accent);font-weight:600}
+
+/* ========== Upload ========== */
+.upload-area{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.upload-thumb{width:90px;height:90px;border-radius:var(--r-sm);background-size:cover;background-position:center;position:relative;border:2px solid var(--border);flex-shrink:0}
+.upload-thumb .del{position:absolute;top:3px;right:3px;background:rgba(255,0,0,.75);color:#fff;width:18px;height:18px;border-radius:50%;font-size:.65rem;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none}
+.upload-thumb .del:hover{background:rgba(200,0,0,.9);transform:scale(1.1)}
+.upload-box{width:90px;height:90px;border-radius:var(--r-sm);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-3);font-size:1.4rem;flex-shrink:0;background:var(--bg)}
+.upload-box:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-weight:600;margin-bottom:5px;font-size:.82rem}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 10px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;font-size:.85rem}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+/* ========== Modals ========== */
+.modal-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:10px}
+.modal{background:var(--card);border-radius:var(--r-2xl);max-width:560px;width:100%;max-height:85vh;overflow-y:auto}
+.modal-close{position:sticky;top:12px;float:right;z-index:10;width:32px;height:32px;border-radius:50%;border:none;background:var(--card);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-sm)}
+.modal-close:hover{background:var(--bg)}
+.modal-content{padding:4px 22px 24px}
+.modal-content h2{text-align:center;margin-bottom:16px}
+.hidden{display:none!important}
+.list-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border-2);gap:6px;flex-wrap:wrap}
+.list-item input,.list-item select{padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.78rem}
+.auth-tabs{display:flex;margin-bottom:18px;border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--border)}
+.auth-tab{flex:1;padding:9px;text-align:center;cursor:pointer;font-weight:600;background:var(--bg);border:none;color:var(--text-2);font-size:.82rem}
+.auth-tab.active{background:var(--accent);color:#fff}
+.announce-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:var(--tr);display:flex;justify-content:space-between;align-items:center}
+.announce-card:hover{background:var(--card-hover);border-color:var(--accent)}
+.announce-card .at{font-weight:600;font-size:.85rem}
+.announce-card .atime{font-size:.72rem;color:var(--text-3)}
+.umgmt-hdr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:2px solid var(--border);font-weight:700;font-size:.72rem;color:var(--text-2)}
+.umgmt-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-2);font-size:.78rem}
+.col-n{width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.col-i{width:60px}
+.col-rs{width:100px}
+.col-rt{width:80px}
+.col-a{width:60px;text-align:center}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--card);border-radius:var(--r);padding:14px;border:1px solid var(--border);text-align:center}
+.stat-card .sv{font-size:1.8rem;font-weight:700;color:var(--accent)}
+.stat-card .sl{font-size:.72rem;color:var(--text-2);margin-top:3px}
+.confirm-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center}
+.confirm-box{background:var(--card);border-radius:var(--r-2xl);padding:22px;max-width:360px;width:90%;text-align:center;box-shadow:var(--sh-xl)}
+.confirm-box p{margin-bottom:16px;font-size:.92rem}
+.confirm-actions{display:flex;gap:10px;justify-content:center}
+.skeleton{background:linear-gradient(90deg,var(--border-2) 25%,var(--border) 50%,var(--border-2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r-sm)}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.footer{position:fixed;bottom:0;left:0;right:0;z-index:50;text-align:center;color:var(--text-3);font-size:.68rem;padding:10px;background:var(--bg);border-top:1px solid var(--border-2);backdrop-filter:blur(10px)}
+@media(max-width:900px){.lb-side{display:none}.main{width:100%}}
+@media(max-width:768px){
+  .nav{padding:0 8px;height:56px}
+  .main{padding:12px 6px 80px}
+  .sec-title{font-size:1.4rem}
+  .grid.maps{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+  .steps{position:static;transform:none;margin:0 auto}
+  .nav-actions{margin-left:auto}
+  .creator-card{flex-direction:column;align-items:flex-start}
+  .vote-area{align-self:flex-end}
+  .replies{margin-left:20px}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <span class="nav-logo" onclick="goHome()"><span class="s">酷点</span><span class="b">无畏契约点位库</span></span>
+  <div class="steps" id="steps">
+    <span class="step-dot active"></span><span class="step-line"></span><span class="step-label active">地图</span>
+    <span class="step-dot"></span><span class="step-line"></span><span class="step-label">特工</span>
+    <span class="step-dot"></span><span class="step-line"></span><span class="step-label">阵营</span>
+    <span class="step-dot"></span><span class="step-line"></span><span class="step-label">点位</span>
+  </div>
+  <div class="nav-actions" id="navActions"></div>
+</nav>
+<div class="main" id="main"></div>
+<aside class="lb-side" id="lbSide">
+  <div class="lb-card">
+    <h3 class="lb-title">贡献榜</h3>
+    <div class="lb-tabs">
+      <button class="lb-tab active" data-tab="uploads">上传数</button>
+      <button class="lb-tab" data-tab="likes">获赞数</button>
+    </div>
+    <ul class="lb-list" id="lbList"></ul>
+    <p class="lb-thanks">由衷感谢所有为本站贡献力量的玩家们！</p>
+  </div>
+</aside>
+<div class="footer">免责声明：本站为AI工具生产的非盈利素材站点，与游戏厂商无任何关联，所有内容版权归对应官方所有，仅供学习参考，禁止用于商业用途。</div>
+<div id="authModal" class="modal-bg hidden"><div class="modal" style="max-width:400px"><button class="modal-close" onclick="closeAuth()">✕</button><div class="modal-content" id="authContent"></div></div></div>
+<div id="detailModal" class="modal-bg hidden"><div class="modal" style="max-width:620px"><button class="modal-close" onclick="closeDetail()">✕</button><div class="modal-content" id="detailContent"></div></div></div>
+<div id="mgrModal" class="modal-bg hidden"><div class="modal"><button class="modal-close" onclick="closeMgr()">✕</button><div class="modal-content" id="mgrContent"></div></div></div>
+<div id="userMgrModal" class="modal-bg hidden"><div class="modal" style="max-width:760px"><button class="modal-close" onclick="closeUserMgr()">✕</button><div class="modal-content" id="userMgrContent"></div></div></div>
+<div id="reportMgrModal" class="modal-bg hidden"><div class="modal" style="max-width:660px"><button class="modal-close" onclick="closeReportMgr()">✕</button><div class="modal-content" id="reportMgrContent"></div></div></div>
+<div id="reportModal" class="modal-bg hidden"><div class="modal" style="max-width:420px"><button class="modal-close" onclick="closeReportModal()">✕</button><div class="modal-content" id="reportContent"></div></div></div>
+<div id="annListModal" class="modal-bg hidden"><div class="modal" style="max-width:560px"><button class="modal-close" onclick="closeAnnList()">✕</button><div class="modal-content" id="annListContent"></div></div></div>
+<div id="annViewModal" class="modal-bg hidden"><div class="modal" style="max-width:760px"><button class="modal-close" onclick="closeAnnView()">✕</button><div class="modal-content" id="annViewContent"></div></div></div>
+<div id="annMgrModal" class="modal-bg hidden"><div class="modal" style="max-width:660px"><button class="modal-close" onclick="closeAnnMgr()">✕</button><div class="modal-content" id="annMgrContent"></div></div></div>
+<div id="statsModal" class="modal-bg hidden"><div class="modal" style="max-width:760px"><button class="modal-close" onclick="closeStats()">✕</button><div class="modal-content" id="statsContent"></div></div></div>
+<div id="nickModal" class="modal-bg hidden"><div class="modal" style="max-width:380px"><button class="modal-close" onclick="closeNick()">✕</button><div class="modal-content" id="nickContent"></div></div></div>
+<div id="toast" style="position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 20px;border-radius:20px;font-size:.85rem;z-index:999;opacity:0;transition:.3s;pointer-events:none"></div>
+
+<script>
+// ========== App ==========
+const S = {
+  step:0, map:null, agent:null, side:null, spot:null, editing:null,
+  lbTab:'uploads', authMode:'login',
+  maps:[], agents:[], spots:[], deletedSpots:[], comments:{}, versions:{}
+};
+
+const K = {
+  MAPS:'zk_maps_v19', AGENTS:'zk_agents_v19', SPOTS:'zk_spots_v19', DEL:'zk_del_v2',
+  USERS:'zk_users_v6', CNT:'zk_cnt_v5', CUR:'zk_cur_v6', VOTES:'zk_votes_v2',
+  REPORTS:'zk_reports_v2', ANN:'zk_ann_v2', ANN_READ:'zk_ann_read_v2',
+  COMMENTS:'zk_comments_v2', VER:'zk_ver_v2'
+};
+
+function load(key,def){try{const s=localStorage.getItem(key);if(s){const p=JSON.parse(s);if(Array.isArray(p))return p}}catch(e){}return JSON.parse(JSON.stringify(def))}
+function save(key,data){localStorage.setItem(key,JSON.stringify(data))}
+function getUsers(){return load(K.USERS,[])}
+function saveUsers(u){save(K.USERS,u)}
+function getSpots(){return load(K.SPOTS,[]).map(s=>({...s,creatorId:s.creatorId||null,createdAt:s.createdAt||null}))}
+function saveSpots(s){save(K.SPOTS,s)}
+function getVotes(){return load(K.VOTES,{})}
+function saveVotes(v){save(K.VOTES,v)}
+function getReports(){return load(K.REPORTS,[])}
+function saveReports(r){save(K.REPORTS,r)}
+function getAnns(){return load(K.ANN,[])}
+function saveAnns(a){save(K.ANN,a)}
+function getAnnRead(){return load(K.ANN_READ,{})}
+function saveAnnRead(m){save(K.ANN_READ,m)}
+function getComments(){return load(K.COMMENTS,{})}
+function saveComments(c){save(K.COMMENTS,c)}
+function getUserById(uid){return getUsers().find(u=>u.id===uid)||null}
+function getRoleClass(r){return{'普通用户':'normal','会员':'member','管理员':'admin','高级管理员':'superadmin'}[r]||'normal'}
+
+// Crypto
+async function genSalt(){const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('')}
+async function hashPW(pw,salt){const d=new TextEncoder().encode(pw+salt);const h=await crypto.subtle.digest('SHA-256',d);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('')}
+
+function fmtDate(iso){if(!iso)return'未知';const d=new Date(iso);return`${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月${String(d.getDate()).padStart(2,'0')}日`}
+function showConfirm(msg){return new Promise(r=>{const ov=document.createElement('div');ov.className='confirm-bg';ov.innerHTML=`<div class="confirm-box"><p>${msg}</p><div class="confirm-actions"><button class="btn btn-primary" id="cfY">确认</button><button class="btn btn-outline" id="cfN">取消</button></div></div>`;document.body.appendChild(ov);ov.querySelector('#cfY').onclick=()=>{ov.remove();r(true)};ov.querySelector('#cfN').onclick=()=>{ov.remove();r(false)}})}
+let toastTimer;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.opacity='0',2500)}
+
+// IndexedDB
+const DB={DB_NAME:'zk_img_v14',STORE:'spot_images',db:null,open(){return new Promise((res,rej)=>{const r=indexedDB.open(this.DB_NAME,1);r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains(this.STORE))db.createObjectStore(this.STORE,{keyPath:'key'})};r.onsuccess=e=>{this.db=e.target.result;res(this.db)};r.onerror=()=>rej(r.error)})},saveImage(key,blob){return new Promise((res,rej)=>{if(!this.db)return rej();const tx=this.db.transaction(this.STORE,'readwrite');tx.objectStore(this.STORE).put({key,blob});tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})},getImage(key){return new Promise(res=>{if(!this.db)return res(null);const tx=this.db.transaction(this.STORE,'readonly');const r=tx.objectStore(this.STORE).get(key);r.onsuccess=()=>res(r.result?r.result.blob:null);r.onerror=()=>res(null)})},delByPrefix(pfx){return new Promise(res=>{if(!this.db)return res();const tx=this.db.transaction(this.STORE,'readwrite');const s=tx.objectStore(this.STORE);const r=s.openCursor();r.onsuccess=e=>{const c=e.target.result;if(c){if(c.key.startsWith(pfx))c.delete();c.continue()}else res()};r.onerror=()=>res()})}}
+function compressImg(file,maxW=1200,q=.7){return new Promise((res,rej)=>{if(file.size<200*1024)return res(file);const rd=new FileReader();rd.onload=e=>{const img=new Image();img.onload=()=>{if(img.width<=maxW)return res(file);const c=document.createElement('canvas');const r=maxW/img.width;c.width=maxW;c.height=img.height*r;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b?res(new File([b],file.name,{type:'image/jpeg'})):rej(new Error('压缩失败')),'image/jpeg',q)};img.src=e.target.result};rd.readAsDataURL(file)})}
+
+// Default Data
+const DEF_MAPS=[
+  {id:'lotus',name:'莲华古城'},{id:'split',name:'裂变峡谷'},{id:'neon',name:'霓虹町'},
+  {id:'sunset',name:'日落之城'},{id:'icebox',name:'森寒冬港'},{id:'pearl',name:'深海明珠'},
+  {id:'tian',name:'天枢云阙'},{id:'breeze',name:'微风岛屿'},{id:'ascent',name:'亚海悬城'},
+  {id:'salt',name:'盐海矿镇'},{id:'haven',name:'隐世修所'},{id:'deep',name:'幽邃地窟'},
+  {id:'bind',name:'源工重镇'}
+];
+const DEF_AGENTS=[
+  {id:'phoenix',name:'不死鸟'},{id:'jett',name:'捷风'},{id:'neon2',name:'霓虹'},
+  {id:'raze',name:'雷兹'},{id:'yoru',name:'夜露'},{id:'reyna',name:'芮娜'},
+  {id:'brimstone',name:'炼狱'},{id:'viper',name:'蝰蛇'},{id:'sage',name:'贤者'},
+  {id:'cypher',name:'零'},{id:'sova',name:'猎枭'},{id:'killjoy',name:'奇乐'},
+  {id:'skye',name:'斯凯'},{id:'breach',name:'铁臂'},{id:'omen',name:'幽影'},
+  {id:'fade',name:'黑梦'},{id:'harbor',name:'海神'},{id:'gekko',name:'盖可'},
+  {id:'chamber',name:'尚勃勒'},{id:'astra',name:'星礈'},{id:'kayo',name:'KO'},
+  {id:'vyse',name:'维斯'},{id:'clove',name:'蓓'},{id:'deadlock',name:'钢锁'}
+];
+const SUPER_ADMIN={account:'19737183120',password:'12345678',nickname:'酷点',role:'高级管理员'};
+
+S.maps=load(K.MAPS,DEF_MAPS);
+S.agents=load(K.AGENTS,DEF_AGENTS);
+S.spots=getSpots();
+S.deletedSpots=load(K.DEL,[]);
+S.comments=getComments();
+S.versions=load(K.VER,{});
+function loadCur(){const s=localStorage.getItem(K.CUR);if(s)try{return JSON.parse(s)}catch(e){}return null}
+S.currentUser=loadCur();
+
+async function ensureSuperAdmin(){
+  let users=getUsers();
+  if(!users.find(u=>u.account===SUPER_ADMIN.account)){
+    let cnt=parseInt(localStorage.getItem(K.CNT)||'0');
+    cnt++;localStorage.setItem(K.CNT,cnt.toString());
+    const id=String(cnt).padStart(5,'0');
+    const salt=await genSalt();
+    const pwHash=await hashPW(SUPER_ADMIN.password,salt);
+    users.unshift({id,account:SUPER_ADMIN.account,nickname:SUPER_ADMIN.nickname,role:'高级管理员',lastNicknameChange:null,blocked:false,salt,passwordHash:pwHash});
+    saveUsers(users);
+  }
+}
+function isAdmin(){return S.currentUser&&(S.currentUser.role==='管理员'||S.currentUser.role==='高级管理员')}
+function isSuperAdmin(){return S.currentUser&&S.currentUser.role==='高级管理员'}
+function canManage(){return S.currentUser&&!S.currentUser.blocked&&['会员','管理员','高级管理员'].includes(S.currentUser.role)}
+function canEditSpot(spot){if(!canManage())return false;if(isAdmin())return true;return spot.creatorId===S.currentUser.id}
+
+// Img helper
+function imgFB(src){const safe=(src||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');return`<img src="${safe}" loading="lazy" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='block';" /><span class="noimg">暂无图片</span>`}
+
+// Go home
+function goHome(){S.step=0;S.map=null;S.agent=null;S.side=null;S.spot=null;S.editing=null;render()}
+
+// ========== Render ==========
+const main=document.getElementById('main');
+function render(){
+  main.innerHTML='';
+  switch(S.step){
+    case 0:renderMaps();break;
+    case 1:renderAgents();break;
+    case 2:renderSides();break;
+    case 3:renderSpots();break;
+    case 4:renderDetail();break;
+    case 5:renderAddSpot();break;
+  }
+  updateSteps();updateLB();updateAnnDot();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateSteps(){
+  const dots=document.querySelectorAll('.step-dot');
+  const lines=document.querySelectorAll('.step-line');
+  const labels=document.querySelectorAll('.step-label');
+  dots.forEach((d,i)=>{d.classList.remove('active','done');if(i<S.step)d.classList.add('done');if(i===S.step)d.classList.add('active');d.style.cursor=i<S.step?'pointer':'default';d.onclick=()=>{if(i<S.step){S.step=i;render()}}});
+  lines.forEach((l,i)=>l.classList.toggle('done',i<S.step));
+  labels.forEach((l,i)=>{l.classList.remove('active');if(i===S.step)l.classList.add('active')});
+}
+
+function renderMaps(){
+  const v=document.createElement('div');v.className='view';
+  v.innerHTML=`<div class="sec-header"><h1 class="sec-title">选择地图</h1><p class="sec-sub">点击地图卡片开始浏览战术点位</p></div><div class="grid maps">${S.maps.map(m=>`<div class="card map-card" data-id="${m.id}"><div class="card-icon">${imgFB(`images/map/${encodeURIComponent(m.name)}.png`)}</div><div class="card-info"><div class="card-label">${m.name}</div><div class="stat">点位：${S.spots.filter(s=>s.map===m.id).length}</div></div></div>`).join('')}</div>`;
+  main.appendChild(v);
+  v.querySelectorAll('.map-card').forEach(c=>c.onclick=()=>{S.map=S.maps.find(m=>m.id===c.dataset.id);S.step=1;render()});
+}
+
+function renderAgents(){
+  if(!S.map)return goHome();
+  const ms=S.spots.filter(s=>s.map===S.map.id);
+  const ac={};ms.forEach(s=>ac[s.agent]=(ac[s.agent]||0)+1);
+  const sorted=[...S.agents].sort((a,b)=>(ac[b.id]||0)-(ac[a.id]||0)||a.name.localeCompare(b.name,'zh'));
+  const v=document.createElement('div');v.className='view';
+  v.innerHTML=`<div class="nav-row"><div class="back-row" id="bk">← 返回地图</div><div class="home-row" id="hm">↑ 首页</div></div><div class="sec-header"><h1 class="sec-title">选择特工</h1><p class="sec-sub">地图：${S.map.name}</p></div><div class="grid agents">${sorted.map(a=>{const c=ac[a.id]||0;return`<div class="card agent-card${c===0?' nospot':''}" data-id="${a.id}"><div class="card-icon">${imgFB(`images/agent/${encodeURIComponent(a.name)}.png`)}</div><div class="card-label">${a.name}</div><div class="stat">${c}个</div></div>`}).join('')}</div>`;
+  main.appendChild(v);
+  v.querySelector('#bk').onclick=()=>{S.step=0;render()};
+  v.querySelector('#hm').onclick=goHome;
+  v.querySelectorAll('.agent-card').forEach(c=>c.onclick=()=>{S.agent=S.agents.find(a=>a.id===c.dataset.id);S.step=2;render()});
+}
+
+function renderSides(){
+  if(!S.map||!S.agent)return goHome();
+  const v=document.createElement('div');v.className='view';
+  v.innerHTML=`<div class="nav-row"><div class="back-row" id="bk">← 返回特工</div><div class="home-row" id="hm">↑ 首页</div></div><div class="sec-header"><h1 class="sec-title">选择阵营</h1><p class="sec-sub">${S.map.name} · ${S.agent.name}</p></div><div style="display:grid;grid-template-columns:1fr 1fr;max-width:400px;margin:0 auto;gap:16px"><div class="card side-card" data-side="attack" style="background:#FF4655;color:#fff"><div class="card-icon" style="background:rgba(255,255,255,.2)">攻</div><div class="card-label">进攻方</div></div><div class="card side-card" data-side="defense" style="background:#4a90d9;color:#fff"><div class="card-icon" style="background:rgba(255,255,255,.2)">守</div><div class="card-label">防守方</div></div></div>`;
+  main.appendChild(v);
+  v.querySelector('#bk').onclick=()=>{S.step=1;render()};
+  v.querySelector('#hm').onclick=goHome;
+  v.querySelectorAll('.side-card').forEach(c=>c.onclick=()=>{S.side=c.dataset.side;S.step=3;render()});
+}
+
+function renderSpots(){
+  if(!S.map||!S.agent||!S.side)return goHome();
+  const f=S.spots.filter(s=>s.map===S.map.id&&s.agent===S.agent.id&&s.side===S.side);
+  const sn=S.side==='attack'?'进攻方':'防守方';
+  const pending={};getReports().filter(r=>r.status==='pending').forEach(r=>pending[r.spotId]=true);
+  const v=document.createElement('div');v.className='view';
+  v.innerHTML=`<div class="nav-row"><div class="back-row" id="bk">← 返回阵营</div><div class="home-row" id="hm">↑ 首页</div></div><div class="sec-header"><h1 class="sec-title">${sn}点位</h1><p class="sec-sub">${S.map.name} · ${S.agent.name} · 共${f.length}个</p></div>${canManage()?'<button class="btn btn-primary" id="addBtn" style="margin-bottom:16px">+ 添加点位</button>':''}${f.length===0?'<p style="text-align:center;color:var(--text-3);padding:40px 0">暂无该特工此阵营的点位素材</p>':`<div class="grid spots">${f.map(s=>{const rp=pending[s.id];const dc=rp&&!isAdmin();let cls='card spot-card';if(dc)cls+=' reported';else if(rp)cls+=' reported admin';return`<div class="${cls}" data-id="${s.id}"><div class="spot-thumb" id="thumb-${s.id}"><span class="spot-tag">${sn}</span>${rp?'<span class="report-tag">举报审核中</span>':''}<span class="noimg">暂无图片</span></div><div class="spot-info"><div class="spot-name">${s.name}</div><div class="spot-desc">${s.desc}</div></div></div>`}).join('')}</div>`}`;
+  main.appendChild(v);
+  v.querySelector('#bk').onclick=()=>{S.step=2;render()};
+  v.querySelector('#hm').onclick=goHome;
+  const ab=v.querySelector('#addBtn');if(ab)ab.onclick=()=>{S.step=5;render()};
+  v.querySelectorAll('.spot-card').forEach(c=>c.onclick=()=>{const id=c.dataset.id;if(pending[id]&&!isAdmin()){toast('该内容被举报，请等待管理员核实');return}S.spot=f.find(s=>s.id==id);S.editing=null;S.step=4;render()});
+  f.forEach(s=>loadThumb(s));
+}
+
+async function loadThumb(spot){
+  const el=document.getElementById('thumb-'+spot.id);if(!el)return;
+  const sk=document.createElement('div');sk.className='skeleton';sk.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%';el.appendChild(sk);
+  let blob=await DB.getImage(`spot_${spot.id}_0`);if(blob){const url=URL.createObjectURL(blob);const img=document.createElement('img');img.src=url;img.loading='lazy';img.onload=()=>{sk.remove();el.querySelector('.noimg').style.display='none'};img.onerror=()=>{sk.remove();URL.revokeObjectURL(url)};el.insertBefore(img,el.firstChild);setTimeout(()=>URL.revokeObjectURL(url),60000)}else{sk.remove();el.querySelector('.noimg').style.display='block'}
+}
+
+// ========== Detail ==========
+function renderDetail(){
+  if(!S.spot)return goHome();
+  const spot=S.spot;const isEd=!!S.editing;
+  const v=document.createElement('div');v.className='view';
+  v.innerHTML=`<div class="nav-row"><div class="back-row" id="bk">← 返回列表</div><div class="home-row" id="hm">↑ 首页</div></div><div class="detail-box">${isEd?renderEdit():renderDetailContent(spot)}</div>`;
+  main.appendChild(v);
+  v.querySelector('#bk').onclick=()=>{S.editing=null;S.step=3;render()};
+  v.querySelector('#hm').onclick=goHome;
+  if(!isEd){
+    const eb=v.querySelector('#editBtn');if(eb)eb.onclick=()=>{S.editing={...spot};render()};
+    const db=v.querySelector('#delBtn');if(db)db.onclick=()=>{showConfirm('确定删除该点位？').then(ok=>{if(ok){softDelSpot(spot.id);toast('已删除');S.step=3;render()}})};
+    const lb=v.querySelector('#likeBtn');if(lb)lb.onclick=()=>{toggleVote(spot.id,'like');render()};
+    const dlb=v.querySelector('#dislikeBtn');if(dlb)dlb.onclick=()=>{toggleVote(spot.id,'dislike');render()};
+    const rb=v.querySelector('#reportBtn');if(rb)rb.onclick=()=>openReportModal(spot.id);
+    // Comments
+    renderComments(spot.id);
+    loadDetailImages(spot.id);
+  }else{
+    bindEditForm(v);
+  }
+}
+
+function renderDetailContent(spot){
+  const sn=spot.side==='attack'?'进攻方':'防守方';
+  const creator=getUserById(spot.creatorId);
+  const votes=getVotes()[spot.id]||{likes:{},dislikes:{}};
+  const likeCount=Object.keys(votes.likes||{}).length;
+  const dislikeCount=Object.keys(votes.dislikes||{}).length;
+  const liked=S.currentUser&&votes.likes&&votes.likes[S.currentUser.id];
+  const disliked=S.currentUser&&votes.dislikes&&votes.dislikes[S.currentUser.id];
+  const roleBg={'普通用户':'var(--gray)','会员':'var(--gold)','管理员':'var(--green)','高级管理员':'var(--purple)'}[creator?.role]||'var(--accent)';
+  return`<h2 style="text-align:center">${spot.name}</h2><div style="text-align:center;color:var(--text-2);font-size:.85rem;margin:6px 0 12px">${S.map.name} · ${S.agent.name} · ${sn}</div><div class="detail-imgs" id="detailImgs"><div class="skeleton" style="height:300px;border-radius:var(--r)"></div></div><p class="detail-desc">${spot.desc||'暂无描述'}</p><div class="creator-card"><div class="creator-left"><div class="creator-avatar" style="background:${roleBg}">${creator?creator.nickname.charAt(0).toUpperCase():'?'}</div><div class="creator-info"><span class="creator-name">${creator?creator.nickname:'未知'} <span class="role-tag ${getRoleClass(creator?.role)}" style="font-size:.6rem">${creator?.role||''}</span></span><span class="creator-meta">ID: ${creator?creator.id:'?'} · ${fmtDate(spot.createdAt)}</span></div></div><div class="vote-area"><button class="vote-btn ${liked?'liked':''}" id="likeBtn">👍 <span class="vote-count">${likeCount}</span></button><button class="vote-btn ${disliked?'disliked':''}" id="dislikeBtn">👎 <span class="vote-count">${dislikeCount}</span></button>${canManage()&&!isAdmin()?'':canManage()||S.currentUser?.id===spot.creatorId?'<button class="btn btn-outline" id="editBtn" style="font-size:.78rem;padding:6px 14px">编辑</button><button class="btn btn-danger" id="delBtn" style="font-size:.78rem;padding:6px 14px">删除</button>':''}${S.currentUser&&S.currentUser.id!==spot.creatorId?'<button class="report-btn" id="reportBtn">🚩 举报</button>':''}</div></div><div class="comment-section" id="cmtSec"><h3>💬 评论区</h3></div>`;
+}
+
+async function loadDetailImages(spotId){
+  const el=document.getElementById('detailImgs');if(!el)return;
+  el.innerHTML='<div class="skeleton" style="height:300px;border-radius:var(--r)"></div>';
+  let html='';let hasImg=false;
+  for(let i=0;i<5;i++){
+    const blob=await DB.getImage(`spot_${spotId}_${i}`);
+    if(blob){
+      hasImg=true;
+      const url=URL.createObjectURL(blob);
+      html+=`<div class="detail-img-item"><span class="img-idx">${i+1}</span><img src="${url}" onload="setTimeout(()=>URL.revokeObjectURL('${url}'),60000)" onerror="this.parentElement.style.display='none'"></div>`;
+    }
+  }
+  if(!hasImg)html='<p style="text-align:center;color:var(--text-3);padding:30px 0">暂无图片素材</p>';
+  el.innerHTML=html;
+}
+
+// ========== Add/Edit Spot ==========
+function renderEdit(){const spot=S.editing;const isNew=!spot.id;return`<h2>${isNew?'添加点位':'编辑点位'}</h2><div class="fg"><label>点位名称</label><input id="spotName" value="${spot.name||''}" placeholder="例：A大烟雾弹"></div><div class="fg"><label>点位描述</label><textarea id="spotDesc" rows="4" placeholder="详细描述点位位置、操作方法...">${spot.desc||''}</textarea></div><div class="fg"><label>图片素材（可多选）</label><div class="upload-area" id="imgArea"><div class="upload-box" id="upBox">+</div></div></div><div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-primary" id="saveSpotBtn">保存</button><button class="btn btn-outline" id="cancelEditBtn">取消</button></div>`}
+function bindEditForm(v){
+  const spot=S.editing;const imgFiles=spot._imgs||[];const isNew=!spot.id;
+  function renderImgs(){
+    const area=v.querySelector('#imgArea');if(!area)return;
+    area.querySelectorAll('.upload-thumb').forEach(el=>el.remove());
+    imgFiles.forEach((item,idx)=>{const thumb=document.createElement('div');thumb.className='upload-thumb';const url=item.type==='existing'?item.url:URL.createObjectURL(item.file);thumb.style.backgroundImage=`url(${url})`;const del=document.createElement('button');del.className='del';del.textContent='×';del.onclick=e=>{e.stopPropagation();if(item.type==='new')URL.revokeObjectURL(url);imgFiles.splice(idx,1);renderImgs()};thumb.appendChild(del);area.insertBefore(thumb,v.querySelector('#upBox'))});
+  }
+  if(!spot._imgs)spot._imgs=imgFiles;renderImgs();
+  const input=document.createElement('input');input.type='file';input.accept='image/*';input.multiple=true;input.style.display='none';
+  v.querySelector('#upBox').appendChild(input);
+  v.querySelector('#upBox').onclick=()=>input.click();
+  input.onchange=async()=>{const files=Array.from(input.files);for(const f of files){try{const c=await compressImg(f);imgFiles.push({type:'new',file:c})}catch(e){imgFiles.push({type:'new',file:f})}}renderImgs();input.value=''};
+  v.querySelector('#saveSpotBtn').onclick=async()=>{
+    const name=v.querySelector('#spotName').value.trim();const desc=v.querySelector('#spotDesc').value.trim();
+    if(!name){toast('请填写点位名称');return}
+    if(!S.currentUser){toast('请先登录');return}
+    const id=spot.id||Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    if(isNew){for(let i=0;i<imgFiles.length;i++){const item=imgFiles[i];if(item.type==='new'){await DB.saveImage(`spot_${id}_${i}`,item.file)}}}else{let idx=0;for(const item of imgFiles){if(item.type==='new'){await DB.saveImage(`spot_${id}_${idx}`,item.file)}idx++}}
+    const newSpot={id,name,desc,map:S.map.id,agent:S.agent.id,side:S.side,creatorId:spot.creatorId||S.currentUser.id,createdAt:spot.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+    if(isNew){S.spots.push(newSpot)}else{const i=S.spots.findIndex(s=>s.id===id);if(i>=0)S.spots[i]={...S.spots[i],...newSpot}}
+    saveSpots(S.spots);S.editing=null;S.spot=newSpot;S.step=4;render();toast(isNew?'添加成功':'保存成功');
+  };
+  v.querySelector('#cancelEditBtn').onclick=()=>{S.editing=null;S.step=isNew?3:4;render()};
+}
+
+function renderAddSpot(){
+  if(!S.map||!S.agent||!S.side)return goHome();
+  S.editing={};const v=document.createElement('div');v.className='view';
+  v.innerHTML=`<div class="nav-row"><div class="back-row" id="bk">← 返回列表</div><div class="home-row" id="hm">↑ 首页</div></div><div class="detail-box">${renderEdit()}</div>`;
+  main.appendChild(v);
+  v.querySelector('#bk').onclick=()=>{S.step=3;render()};
+  v.querySelector('#hm').onclick=goHome;
+  bindEditForm(v);
+}
+
+// ========== Comments (2-level nested) ==========
+function renderComments(spotId){
+  const sec=document.getElementById('cmtSec');if(!sec)return;
+  const cmts=getComments()[spotId]||[];
+  const topCmts=cmts.filter(c=>!c.parentId);
+  let html='<div class="comment-input-area">';
+  if(S.currentUser){
+    html+=`<textarea id="cmtInput" placeholder="说点什么..."></textarea><div class="actions"><button class="btn btn-primary btn-sm" id="cmtSubmit">发表</button></div>`;
+  }else{
+    html+='<p style="color:var(--text-3);font-size:.8rem;text-align:center;padding:8px 0">请先登录后评论</p>';
+  }
+  html+='</div><div class="comment-list">';
+  if(topCmts.length===0){
+    html+='<p style="text-align:center;color:var(--text-3);padding:16px 0;font-size:.82rem">暂无评论，快来抢沙发！</p>';
+  }else{
+    topCmts.forEach(c=>{const replies=cmts.filter(r=>r.parentId===c.id);html+=renderComment(c,spotId,replies)});
+  }
+  html+='</div>';
+  sec.innerHTML+=html;
+  // Bind events
+  const si=document.getElementById('cmtSubmit');if(si)si.onclick=()=>{const txt=document.getElementById('cmtInput').value.trim();if(!txt){toast('评论不能为空');return}addComment(spotId,txt,null,null);render()};
+  sec.querySelectorAll('[data-reply]').forEach(b=>b.onclick=()=>{const id=b.dataset.reply;const item=b.closest('.comment-item');let box=item.querySelector('.reply-box');if(box){box.remove();return}box=document.createElement('div');box.className='reply-box';const uname=b.dataset.user;box.innerHTML=`<span class="reply-prefix">@${uname}</span><textarea placeholder="回复 ${uname}..." data-reply-input="${id}"></textarea><div class="actions"><button class="btn btn-primary btn-sm" data-reply-submit="${id}">回复</button><button class="btn btn-outline btn-sm" data-reply-cancel>取消</button></div>`;item.appendChild(box);box.querySelector('[data-reply-submit]').onclick=()=>{const txt=box.querySelector('textarea').value.trim();if(!txt){toast('回复不能为空');return}addComment(spotId,txt,id,b.dataset.uid);render()}});
+  sec.querySelectorAll('[data-del-cmt]').forEach(b=>b.onclick=()=>{showConfirm('确定删除该评论？').then(ok=>{if(ok){delComment(b.dataset.delCmt);render()}})});
+  sec.querySelectorAll('[data-del-reply]').forEach(b=>b.onclick=()=>{showConfirm('确定删除该回复？').then(ok=>{if(ok){delComment(b.dataset.delReply);render()}})});
+}
+
+function renderComment(c,spotId,replies){
+  const u=getUserById(c.userId);const isDel=c.deleted;
+  const canDel=S.currentUser&&(c.userId===S.currentUser.id||isAdmin());
+  let html=`<div class="comment-item${isDel?' deleted':''}"><div class="c-header"><div class="c-avatar">${u?u.nickname.charAt(0).toUpperCase():'?'}</div><span class="c-name">${u?u.nickname:'未知'}</span>${u?`<span class="role-tag ${getRoleClass(u.role)}" style="font-size:.55rem;padding:1px 4px">${u.role}</span>`:''}<span class="c-time">${fmtDate(c.createdAt)}</span></div><p class="c-text">${isDel?'该评论已删除':c.text}</p><div class="c-actions">${!isDel&&S.currentUser?`<button data-reply="${c.id}" data-user="${u?u.nickname:'未知'}" data-uid="${c.userId}">↩ 回复</button>`:''}${!isDel&&canDel?`<button data-del-cmt="${c.id}">🗑 删除</button>`:''}</div>`;
+  if(replies&&replies.length>0){
+    html+='<div class="replies">';
+    replies.forEach(r=>{
+      const ru=getUserById(r.userId);const rTo=getUserById(r.replyTo);const rDel=r.deleted;const rCanDel=S.currentUser&&(r.userId===S.currentUser.id||isAdmin());
+      html+=`<div class="reply-item${rDel?' deleted':''}"><div class="c-header"><div class="c-avatar" style="width:22px;height:22px;font-size:.6rem">${ru?ru.nickname.charAt(0).toUpperCase():'?'}</div><span class="c-name">${ru?ru.nickname:'未知'}</span>${rTo?`<span class="reply-to">@${rTo.nickname}</span>`:''}<span class="c-time">${fmtDate(r.createdAt)}</span></div><p class="c-text">${rDel?'该回复已删除':r.text}</p>${!rDel&&rCanDel?`<div class="c-actions"><button data-del-reply="${r.id}">🗑 删除</button></div>`:''}</div>`;
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  return html;
+}
+
+function addComment(spotId,text,parentId,replyToUid){
+  if(!S.currentUser||S.currentUser.blocked)return;
+  const cmts=getComments();
+  if(!cmts[spotId])cmts[spotId]=[];
+  const c={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),userId:S.currentUser.id,text,parentId:parentId||null,replyToUid:replyToUid||null,createdAt:new Date().toISOString(),deleted:false};
+  cmts[spotId].push(c);
+  saveComments(cmts);
+}
+function delComment(cmtId){
+  const cmts=getComments();
+  for(const spotId in cmts){
+    const idx=cmts[spotId].findIndex(c=>c.id===cmtId);
+    if(idx>=0){cmts[spotId][idx].deleted=true;cmts[spotId][idx].text='该评论已删除';saveComments(cmts);return}
+  }
+}
+
+// ========== Votes ==========
+function toggleVote(spotId,type){
+  if(!S.currentUser||S.currentUser.blocked)return;
+  const uid=S.currentUser.id;const votes=getVotes();
+  if(!votes[spotId]||typeof votes[spotId]!=='object')votes[spotId]={likes:{},dislikes:{}};
+  const sv=votes[spotId];
+  sv.likes=sv.likes&&typeof sv.likes==='object'&&!Array.isArray(sv.likes)?sv.likes:{};
+  sv.dislikes=sv.dislikes&&typeof sv.dislikes==='object'&&!Array.isArray(sv.dislikes)?sv.dislikes:{};
+  if(type==='like'){if(sv.likes[uid])delete sv.likes[uid];else{if(sv.dislikes[uid])delete sv.dislikes[uid];sv.likes[uid]=true}}
+  else{if(sv.dislikes[uid])delete sv.dislikes[uid];else{if(sv.likes[uid])delete sv.likes[uid];sv.dislikes[uid]=true}}
+  saveVotes(votes);
+}
+
+// ========== Reports ==========
+function submitReport(spotId,reason,details){
+  if(!S.currentUser||S.currentUser.blocked)return;
+  const r=getReports();r.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),spotId,reason,details:details||'',reporterId:S.currentUser.id,createdAt:new Date().toISOString(),status:'pending',resolvedBy:null,resolvedAt:null,result:null});
+  saveReports(r);
+}
+function softDelSpot(id){const i=S.spots.findIndex(s=>s.id===id);if(i===-1)return;const s=S.spots.splice(i,1)[0];s.deletedAt=new Date().toISOString();s.deletedBy=S.currentUser?.id;S.deletedSpots.push(s);saveSpots(S.spots);save(K.DEL,S.deletedSpots)}
+
+// ========== Leaderboard ==========
+function updateLB(){
+  const users=getUsers();const blocked=new Set(users.filter(u=>u.blocked).map(u=>u.id));
+  const uc={},lc={};
+  S.spots.forEach(s=>{if(s.creatorId&&!blocked.has(s.creatorId))uc[s.creatorId]=(uc[s.creatorId]||0)+1});
+  const votes=getVotes();
+  S.spots.forEach(s=>{if(s.creatorId&&!blocked.has(s.creatorId)){const sv=votes[s.id];if(sv&&sv.likes)lc[s.creatorId]=(lc[s.creatorId]||0)+Object.keys(sv.likes).length}});
+  const data=S.lbTab==='uploads'?uc:lc;
+  const sorted=Object.entries(data).sort(([,a],[,b])=>b-a).slice(0,10);
+  let html='';
+  for(let i=0;i<10;i++){
+    if(i<sorted.length){const[uid,count]=sorted[i];const u=users.find(x=>x.id===uid)||{nickname:'未知',role:'普通用户',id:uid};const rc=getRoleClass(u.role);html+=`<li class="lb-item"><span class="lb-rank">${i+1}</span><span class="lb-user"><span>${u.nickname} (${u.id})</span><span class="role-tag ${rc}">${u.role}</span></span><span class="lb-count">${count}</span></li>`}
+    else html+=`<li class="lb-item"><span class="lb-rank">${i+1}</span><span class="lb-user" style="color:var(--text-3)">暂无</span><span class="lb-count">-</span></li>`;
+  }
+  document.getElementById('lbList').innerHTML=html;
+}
+
+// ========== Auth ==========
+function openAuth(){S.authMode='login';renderAuth();document.getElementById('authModal').classList.remove('hidden');document.body.style.overflow='hidden'}
+function closeAuth(){document.getElementById('authModal').classList.add('hidden');document.body.style.overflow=''}
+function renderAuth(){
+  document.getElementById('authContent').innerHTML=`<h2>${S.authMode==='login'?'登录':'注册账号'}</h2><div class="auth-tabs"><button class="auth-tab ${S.authMode==='login'?'active':''}" id="tLogin">登录</button><button class="auth-tab ${S.authMode==='register'?'active':''}" id="tReg">注册</button></div><div class="fg"><label>账号</label><input id="aAccount" placeholder="请输入账号"></div><div class="fg"><label>密码</label><input type="password" id="aPw" placeholder="请输入密码"></div>${S.authMode==='register'?`<div class="fg"><label>昵称</label><input id="aNick" placeholder="请输入昵称"></div><div class="fg"><label>确认密码</label><input type="password" id="aPw2" placeholder="请再次输入密码"></div>`:''}<button class="btn btn-primary" id="aSubmit" style="width:100%;margin-top:6px">${S.authMode==='login'?'登录':'注册'}</button><button class="btn btn-outline" id="aCancel" style="width:100%;margin-top:6px">取消</button>`;
+  document.getElementById('tLogin').onclick=()=>{S.authMode='login';renderAuth()};
+  document.getElementById('tReg').onclick=()=>{S.authMode='register';renderAuth()};
+  document.getElementById('aSubmit').onclick=handleAuth;
+  document.getElementById('aCancel').onclick=closeAuth;
+}
+async function handleAuth(){
+  const acc=document.getElementById('aAccount').value.trim();const pw=document.getElementById('aPw').value.trim();
+  if(!acc||!pw){toast('请填写账号和密码');return}
+  const users=getUsers();
+  if(S.authMode==='login'){
+    const u=users.find(x=>x.account===acc);
+    if(!u){toast('账号不存在');return}
+    let valid=false;
+    if(u.passwordHash&&u.salt){valid=await hashPW(pw,u.salt)===u.passwordHash}
+    else if(u.password!==undefined){valid=u.password===pw;if(valid){const salt=await genSalt();u.salt=salt;u.passwordHash=await hashPW(pw,salt);delete u.password;const i=users.findIndex(x=>x.id===u.id);if(i>=0)users[i]=u;saveUsers(users)}}
+    if(!valid){toast('密码错误');return}
+    if(u.blocked){toast('账号已被禁用');return}
+    S.currentUser=u;localStorage.setItem(K.CUR,JSON.stringify(u));closeAuth();updateNavUI();toast('登录成功！');goHome();
+  }else{
+    if(users.find(x=>x.account===acc)){toast('该账号已被注册');return}
+    const nick=document.getElementById('aNick').value.trim();
+    if(!nick){toast('请填写昵称');return}
+    const pw2=document.getElementById('aPw2').value.trim();
+    if(pw!==pw2){toast('两次密码不一致');return}
+    if(pw.length<3){toast('密码至少3个字符');return}
+    let cnt=parseInt(localStorage.getItem(K.CNT)||'0');cnt++;localStorage.setItem(K.CNT,cnt.toString());
+    const salt=await genSalt();const pwHash=await hashPW(pw,salt);
+    const nu={id:String(cnt).padStart(5,'0'),account:acc,nickname:nick,role:users.length===0?'高级管理员':'普通用户',lastNicknameChange:null,blocked:false,salt,passwordHash:pwHash};
+    users.push(nu);saveUsers(users);S.currentUser=nu;localStorage.setItem(K.CUR,JSON.stringify(nu));closeAuth();updateNavUI();toast('注册成功！');goHome();
+  }
+}
+
+// ========== Nav UI ==========
+function updateNavUI(){
+  const na=document.getElementById('navActions');na.innerHTML='';
+  if(S.currentUser){
+    const wrap=document.createElement('span');wrap.style.position='relative';wrap.style.display='inline-block';
+    const ab=document.createElement('button');ab.className='avatar-btn';ab.textContent=S.currentUser.nickname.charAt(0).toUpperCase();
+    const roleBg={'普通用户':'var(--gray)','会员':'var(--gold)','管理员':'var(--green)','高级管理员':'var(--purple)'}[S.currentUser.role]||'var(--accent)';
+    ab.style.backgroundColor=roleBg;
+    const panel=document.createElement('div');panel.className='user-panel';
+    const rc=getRoleClass(S.currentUser.role);
+    panel.innerHTML=`<span class="nick">${S.currentUser.nickname}<button class="btn btn-outline btn-sm" id="editNickBtn" style="font-size:.65rem;padding:2px 6px">改昵称</button></span><span class="uid">ID: ${S.currentUser.id}</span><span class="role-tag ${rc}">${S.currentUser.role}</span><button class="logout-btn" id="logoutBtn">退出登录</button>`;
+    wrap.appendChild(ab);wrap.appendChild(panel);na.appendChild(wrap);
+    ab.onclick=e=>{e.stopPropagation();panel.classList.toggle('show')};
+    panel.querySelector('#editNickBtn').onclick=openNickModal;
+    panel.querySelector('#logoutBtn').onclick=()=>{showConfirm('确定退出登录吗？').then(ok=>{if(ok){S.currentUser=null;localStorage.removeItem(K.CUR);panel.classList.remove('show');updateNavUI();goHome()}})};
+    document.addEventListener('click',function cp(e){if(!wrap.contains(e.target))panel.classList.remove('show');document.removeEventListener('click',cp)});
+    // Admin menu
+    if(isAdmin()){
+      const mw=document.createElement('span');mw.className='manage-wrap';mw.style.position='relative';mw.style.display='inline-block';
+      const mb=document.createElement('button');mb.className='manage-btn';mb.textContent='管理';
+      const menu=document.createElement('div');menu.className='manage-menu';
+      const items=[
+        {t:'管理地图',f:()=>{closeMgrMenu();openMgr('map')}},
+        {t:'管理特工',f:()=>{closeMgrMenu();openMgr('agent')}},
+        {t:'用户管理',f:()=>{closeMgrMenu();openUserMgr()}},
+        {t:'公告管理',f:()=>{closeMgrMenu();openAnnMgr()}},
+        {t:'举报处理',f:()=>{closeMgrMenu();openReportMgr()}},
+        {t:'数据统计',f:()=>{closeMgrMenu();openStats()}}
+      ];
+      items.forEach(it=>{const b=document.createElement('button');b.textContent=it.t;b.onclick=it.f;menu.appendChild(b)});
+      if(isSuperAdmin()){}
+      mw.appendChild(mb);mw.appendChild(menu);na.appendChild(mw);
+      mb.onclick=e=>{e.stopPropagation();menu.classList.toggle('show')};
+      document.addEventListener('click',function cp2(e){if(!mw.contains(e.target))menu.classList.remove('show');document.removeEventListener('click',cp2)});
+    }
+  }else{
+    const btn=document.createElement('button');btn.className='btn btn-primary';btn.textContent='登录 / 注册';btn.onclick=openAuth;na.appendChild(btn);
+  }
+  // Announce button
+  const abtn=document.createElement('button');abtn.className='announce-btn';abtn.innerHTML=`公告<span class="announce-dot" id="annDot"></span>`;
+  abtn.onclick=openAnnList;na.insertBefore(abtn,na.firstChild);
+  updateAnnDot();
+}
+function closeMgrMenu(){document.querySelectorAll('.manage-menu.show').forEach(m=>m.classList.remove('show'))}
+
+// ========== Announcements ==========
+function getUnreadCount(){if(!S.currentUser)return 0;const all=getAnns();const rm=getAnnRead();const ur=rm[S.currentUser.id]||[];return all.filter(a=>!ur.includes(a.id)).length}
+function updateAnnDot(){const d=document.getElementById('annDot');if(d)d.style.display=getUnreadCount()>0?'block':'none'}
+function openAnnList(){
+  const all=getAnns();const el=document.getElementById('annListContent');
+  el.innerHTML=`<h2>📢 公告</h2>${all.length===0?'<p style="text-align:center;color:var(--text-3);padding:20px 0">暂无公告</p>':all.slice().reverse().map(a=>`<div class="announce-card" data-id="${a.id}"><div><div class="at">${a.title}</div><div class="atime">${fmtDate(a.createdAt)}</div></div></div>`).join('')}`;
+  el.querySelectorAll('.announce-card').forEach(c=>c.onclick=()=>openAnnView(c.dataset.id));
+  document.getElementById('annListModal').classList.remove('hidden');document.body.style.overflow='hidden';
+}
+function closeAnnList(){document.getElementById('annListModal').classList.add('hidden');document.body.style.overflow=''}
+function openAnnView(id){
+  const all=getAnns();const ann=all.find(a=>a.id===id);if(!ann)return;
+  if(S.currentUser){const rm=getAnnRead();const ur=rm[S.currentUser.id]||[];if(!ur.includes(id)){ur.push(id);rm[S.currentUser.id]=ur;saveAnnRead(rm)}updateAnnDot()}
+  const creator=getUserById(ann.creatorId);
+  document.getElementById('annViewContent').innerHTML=`<h2 style="text-align:center">${ann.title}</h2><div style="white-space:pre-wrap;margin:16px 0;line-height:1.5;font-size:.92rem;min-height:8em">${ann.content}</div>${creator?`<div style="text-align:center;font-size:.8rem;color:var(--text-2)">发布者：${creator.nickname} · ${fmtDate(ann.createdAt)}</div>`:''}<div style="text-align:center;margin-top:16px"><button class="btn btn-primary" onclick="closeAnnView()">OK</button></div>`;
+  closeAnnList();document.getElementById('annViewModal').classList.remove('hidden');document.body.style.overflow='hidden';
+}
+function closeAnnView(){document.getElementById('annViewModal').classList.add('hidden');document.body.style.overflow=''}
+function openAnnMgr(){
+  if(!isAdmin())return;
+  const all=getAnns();
+  document.getElementById('annMgrContent').innerHTML=`<h2>📢 公告管理</h2><button class="btn btn-primary" id="addAnn" style="margin-bottom:12px">+ 发布新公告</button>${all.length===0?'<p style="text-align:center;color:var(--text-3)">暂无公告</p>':all.slice().reverse().map(a=>`<div class="list-item" style="flex-direction:column;align-items:flex-start;gap:6px"><div><strong>${a.title}</strong></div><div style="font-size:.78rem;color:var(--text-2)">${a.content.substring(0,50)}...</div><div style="display:flex;gap:6px"><button class="btn-sm primary" onclick="editAnn('${a.id}')">编辑</button><button class="btn-sm danger" onclick="delAnn('${a.id}')">删除</button></div></div>`).join('')}`;
+  document.getElementById('annMgrModal').classList.remove('hidden');document.body.style.overflow='hidden';
+  document.getElementById('addAnn').onclick=()=>editAnn();
+}
+function closeAnnMgr(){document.getElementById('annMgrModal').classList.add('hidden');document.body.style.overflow=''}
+window.editAnn=function(id){
+  const all=getAnns();const ann=id?all.find(a=>a.id===id):null;
+  document.getElementById('annMgrContent').innerHTML=`<h2>${ann?'编辑公告':'发布公告'}</h2><div class="fg"><label>标题</label><input id="annT" value="${ann?ann.title.replace(/"/g,'&quot;'):''}"></div><div class="fg"><label>内容</label><textarea id="annC" rows="6">${ann?ann.content:''}</textarea></div><div style="display:flex;gap:8px"><button class="btn btn-primary" id="saveAnn">保存</button><button class="btn btn-outline" id="cancelAnn">取消</button></div>`;
+  document.getElementById('saveAnn').onclick=()=>{const t=document.getElementById('annT').value.trim();const c=document.getElementById('annC').value.trim();if(!t&&!c){toast('标题和内容不能同时为空');return}let allAnns=getAnns();if(ann){allAnns=allAnns.map(a=>a.id===ann.id?{...a,title:t,content:c,updatedAt:new Date().toISOString()}:a)}else{allAnns.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:t,content:c,creatorId:S.currentUser.id,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});localStorage.removeItem(K.ANN_READ)}saveAnns(allAnns);openAnnMgr();updateAnnDot()};
+  document.getElementById('cancelAnn').onclick=openAnnMgr;
+};
+window.delAnn=function(id){showConfirm('确定删除该公告吗？').then(ok=>{if(ok){let all=getAnns();all=all.filter(a=>a.id!==id);saveAnns(all);openAnnMgr();updateAnnDot()}})};
+
+// ========== Manager (Maps/Agents) ==========
+function openMgr(type){
+  const data=type==='map'?S.maps:S.agents;
+  const label=type==='map'?'地图':'特工';
+  document.getElementById('mgrContent').innerHTML=`<h2>管理${label}</h2><button class="btn btn-primary" id="addItem" style="margin-bottom:12px">+ 添加${label}</button><div id="itemList"></div>`;
+  const list=document.getElementById('itemList');
+  data.forEach((item,idx)=>{
+    const row=document.createElement('div');row.className='list-item';
+    row.innerHTML=`<input value="${item.name}" data-idx="${idx}" style="flex:1"><button class="btn-sm primary" data-save="${idx}">保存</button><button class="btn-sm danger" data-del="${idx}">删除</button>`;
+    list.appendChild(row);
+    row.querySelector('[data-save]').onclick=()=>{const newName=row.querySelector('input').value.trim();if(!newName){toast('名称不能为空');return}data[idx].name=newName;save(type==='map'?K.MAPS:K.AGENTS,data);toast('已保存')};
+    row.querySelector('[data-del]').onclick=()=>{showConfirm(`确定删除${label}「${item.name}」吗？`).then(ok=>{if(ok){data.splice(idx,1);save(type==='map'?K.MAPS:K.AGENTS,data);openMgr(type)}})};
+  });
+  document.getElementById('addItem').onclick=()=>{
+    const name=prompt(`请输入${label}名称`);if(!name)return;
+    data.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:name.trim()});
+    save(type==='map'?K.MAPS:K.AGENTS,data);openMgr(type);
+  };
+  document.getElementById('mgrModal').classList.remove('hidden');document.body.style.overflow='hidden';
+}
+function closeMgr(){document.getElementById('mgrModal').classList.add('hidden');document.body.style.overflow=''}
+
+// ========== User Management ==========
+function openUserMgr(){
+  let users=getUsers();
+  if(S.currentUser.role==='管理员')users=users.filter(u=>(u.role==='普通用户'||u.role==='会员')&&u.id!==S.currentUser.id);
+  else users=users.filter(u=>u.id!==S.currentUser.id);
+  document.getElementById('userMgrContent').innerHTML=`<h2>👥 用户管理</h2><p style="color:var(--text-2);font-size:.78rem;margin-bottom:12px">共 ${users.length} 位用户可管理</p><input id="userSearch" placeholder="搜索ID / 昵称" style="width:100%;padding:8px 10px;border-radius:18px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;font-size:.82rem"><div class="umgmt-hdr"><span class="col-n">昵称</span><span class="col-i">ID</span><span class="col-rs">角色</span><span class="col-rt">当前</span><span class="col-a">保存</span><span class="col-a">拉黑</span></div><div id="userList"></div>`;
+  function renderUL(list){
+    const c=document.getElementById('userList');if(!c)return;
+    const allowed=S.currentUser.role==='管理员'?['普通用户','会员']:['普通用户','会员','管理员','高级管理员'];
+    c.innerHTML=list.map(u=>{const rc=getRoleClass(u.role);return`<div class="umgmt-row"><span class="col-n">${u.nickname}</span><span class="col-i">${u.id}</span><select class="col-rs" data-uid="${u.id}">${allowed.map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}</select><span class="role-tag ${rc} col-rt">${u.role}</span><span class="col-a"><button class="btn-sm primary" data-save="${u.id}">保存</button></span><span class="col-a"><button class="btn-sm ${u.blocked?'primary':'danger'}" data-block="${u.id}">${u.blocked?'解除':'拉黑'}</button></span></div>`}).join('');
+    c.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{const sel=c.querySelector(`select[data-uid="${b.dataset.save}"]`);const newRole=sel.value;const all=getUsers();const t=all.find(u=>u.id===b.dataset.save);if(t){t.role=newRole;saveUsers(all);renderUL(list.filter(u=>u.id!==t.id||true));toast('角色已更新')}});
+    c.querySelectorAll('[data-block]').forEach(b=>b.onclick=()=>{const all=getUsers();const t=all.find(u=>u.id===b.dataset.block);if(t){t.blocked=!t.blocked;saveUsers(all);renderUL(list);toast(t.blocked?'已拉黑':'已解禁')}});
+  }
+  renderUL(users);
+  document.getElementById('userSearch').oninput=function(){const t=this.value.toLowerCase();renderUL(users.filter(u=>u.id.includes(t)||u.nickname.toLowerCase().includes(t)))};
+  document.getElementById('userMgrModal').classList.remove('hidden');document.body.style.overflow='hidden';
+}
+function closeUserMgr(){document.getElementById('userMgrModal').classList.add('hidden');document.body.style.overflow=''}
+
+// ========== Report Management ==========
+function openReportMgr(){
+  if(!isAdmin())return;
+  const reports=getReports();
+  const pending=reports.filter(r=>r.status==='pending');
+  const resolved=reports.filter(r=>r.status!=='pending');
+  document.getElementById('reportMgrContent').innerHTML=`<h2>🚩 举报处理</h2><h3 style="margin:12px 0 6px">待处理 (${pending.length})</h3>${pending.length===0?'<p style="color:var(--text-3);text-align:center;padding:8px 0">暂无待处理举报</p>':pending.map(r=>{const spot=S.spots.find(s=>s.id===r.spotId);return`<div class="list-item" style="flex-direction:column;align-items:flex-start;gap:6px"><div><strong>${spot?spot.name:'已删除点位'}</strong></div><div style="font-size:.78rem;color:var(--text-2)">理由：${r.reason}${r.details?' · '+r.details:''}</div><div style="font-size:.72rem;color:var(--text-3)">举报人：${getUserById(r.reporterId)?.nickname||'?'} · ${fmtDate(r.createdAt)}</div><div style="display:flex;gap:6px"><button class="btn-sm danger" data-approve="${r.id}">删除点位</button><button class="btn-sm primary" data-reject="${r.id}">驳回</button></div></div>`}).join('')}<h3 style="margin:16px 0 6px">已处理 (${resolved.length})</h3>${resolved.length===0?'<p style="color:var(--text-3);text-align:center;padding:8px 0">暂无处理记录</p>':resolved.slice().reverse().map(r=>`<div class="list-item" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="font-size:.78rem">${r.status==='approved'?'✅ 已删除点位':'❌ 已驳回'}</div><div style="font-size:.72rem;color:var(--text-2)">处理人：${getUserById(r.resolvedBy)?.nickname||'?'} · ${fmtDate(r.resolvedAt)}</div></div>`).join('')}`;
+  document.getElementById('reportMgrContent').querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>{showConfirm('确定删除该点位？此操作不可撤销。').then(ok=>{if(ok){resolveReport(b.dataset.approve,'approve')}})});
+  document.getElementById('reportMgrContent').querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>{resolveReport(b.dataset.reject,'reject')});
+  document.getElementById('reportMgrModal').classList.remove('hidden');document.body.style.overflow='hidden';
+}
+function closeReportMgr(){document.getElementById('reportMgrModal').classList.add('hidden');document.body.style.overflow=''}
+function resolveReport(id,action){
+  const reports=getReports();const r=reports.find(x=>x.id===id);if(!r)return;
+  r.status=action==='approve'?'approved':'rejected';r.resolvedBy=S.currentUser.id;r.resolvedAt=new Date().toISOString();
+  if(action==='approve'){softDelSpot(r.spotId)}
+  saveReports(reports);openReportMgr();toast('已处理');
+}
+
+// ========== Report Modal ==========
+function openReportModal(spotId){
+  document.getElementById('reportContent').innerHTML=`<h2>🚩 举报点位</h2><p style="color:var(--text-2);font-size:.82rem;margin-bottom:12px">请说明举报理由，管理员将进行审核</p><div class="fg"><select id="reportReason"><option value="">请选择举报理由</option><option value="内容不当">内容不当</option><option value="虚假信息">虚假信息</option><option value="重复点位">重复点位</option><option value="其他">其他</option></select></div><div class="fg"><label>补充说明（可选）</label><textarea id="reportDetails" rows="3" placeholder="补充说明..."></textarea></div><div style="display:flex;gap:8px"><button class="btn btn-primary" id="submitReport">确认举报</button><button class="btn btn-outline" id="cancelReport">取消</button></div>`;
+  document.getElementById('reportModal').classList.remove('hidden');document.body.style.overflow='hidden';
+  document.getElementById('submitReport').onclick=()=>{const reason=document.getElementById('reportReason').value;if(!reason){toast('请选择举报理由');return}const details=document.getElementById('reportDetails').value.trim();submitReport(spotId,reason,details);closeReportModal();toast('举报已提交，等待管理员审核')};
+  document.getElementById('cancelReport').onclick=closeReportModal;
+}
+function closeReportModal(){document.getElementById('reportModal').classList.add('hidden');document.body.style.overflow=''}
+
+// ========== Stats ==========
+function openStats(){
+  if(!isAdmin())return;
+  const totalSpots=S.spots.length;const totalUsers=getUsers().length;const totalLikes=Object.values(getVotes()).reduce((s,v)=>s+Object.keys(v.likes||{}).length,0);
+  const pendingReports=getReports().filter(r=>r.status==='pending').length;
+  const totalComments=Object.values(getComments()).reduce((s,arr)=>s+arr.filter(c=>!c.deleted).length,0);
+  const totalMaps=S.maps.length;const totalAgents=S.agents.length;
+  const topContrib=Object.entries(S.spots.reduce((m,s)=>{if(s.creatorId)m[s.creatorId]=(m[s.creatorId]||0)+1;return m},{})).sort(([,a],[,b])=>b-a).slice(0,5).map(([uid,c])=>{const u=getUserById(uid);return{nick:u?u.nickname:'未知',count:c,role:u?u.role:'普通用户'}});
+  document.getElementById('statsContent').innerHTML=`<h2>📊 数据统计</h2><div class="stats-grid"><div class="stat-card"><div class="sv">${totalSpots}</div><div class="sl">点位总数</div></div><div class="stat-card"><div class="sv">${totalUsers}</div><div class="sl">用户总数</div></div><div class="stat-card"><div class="sv">${totalLikes}</div><div class="sl">总点赞数</div></div><div class="stat-card"><div class="sv">${totalComments}</div><div class="sl">评论总数</div></div><div class="stat-card"><div class="sv">${pendingReports}</div><div class="sl">待处理举报</div></div><div class="stat-card"><div class="sv">${totalMaps}</div><div class="sl">地图数量</div></div><div class="stat-card"><div class="sv">${totalAgents}</div><div class="sl">特工数量</div></div></div><h3 style="margin-bottom:8px">Top 贡献者</h3>${topContrib.map((c,i)=>`<div class="list-item"><span style="font-weight:700;color:var(--accent)">${i+1}</span><span>${c.nick}</span><span class="role-tag ${getRoleClass(c.role)}" style="font-size:.6rem">${c.role}</span><span style="font-weight:700">${c.count}个点位</span></div>`).join('')}`;
+  document.getElementById('statsModal').classList.remove('hidden');document.body.style.overflow='hidden';
+}
+function closeStats(){document.getElementById('statsModal').classList.add('hidden');document.body.style.overflow=''}
+
+// ========== Nickname ==========
+function openNickModal(){
+  if(!S.currentUser)return;
+  const month=30*86400000;const canChange=!S.currentUser.lastNicknameChange||(Date.now()-new Date(S.currentUser.lastNicknameChange).getTime()>=month);
+  document.getElementById('nickContent').innerHTML=`<h2>修改昵称</h2><p style="color:var(--text-2);font-size:.78rem;margin-bottom:12px">一个月只能修改一次</p><div class="fg"><input id="newNick" value="${S.currentUser.nickname}" ${canChange?'':'disabled'}></div>${!canChange?`<p style="color:var(--accent);font-size:.72rem">下次可修改：${fmtDate(new Date(new Date(S.currentUser.lastNicknameChange).getTime()+month).toISOString())}</p>`:''}<div style="display:flex;gap:8px"><button class="btn btn-primary" id="saveNick" ${canChange?'':'disabled'}>保存</button><button class="btn btn-outline" id="cancelNick">取消</button></div>`;
+  document.getElementById('nickModal').classList.remove('hidden');document.body.style.overflow='hidden';
+  document.getElementById('saveNick').onclick=()=>{const nn=document.getElementById('newNick').value.trim();if(!nn){toast('昵称不能为空');return}if(nn===S.currentUser.nickname){closeNick();return}S.currentUser.nickname=nn;S.currentUser.lastNicknameChange=new Date().toISOString();const users=getUsers();const u=users.find(x=>x.id===S.currentUser.id);if(u){u.nickname=nn;u.lastNicknameChange=S.currentUser.lastNicknameChange;saveUsers(users)}localStorage.setItem(K.CUR,JSON.stringify(S.currentUser));closeNick();updateNavUI();updateLB();toast('昵称已修改')};
+  document.getElementById('cancelNick').onclick=closeNick;
+}
+function closeNick(){document.getElementById('nickModal').classList.add('hidden');document.body.style.overflow=''}
+
+// ========== Leaderboard tabs ==========
+document.querySelectorAll('.lb-tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.lb-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');S.lbTab=t.dataset.tab;updateLB()});
+
+// ========== Init ==========
+async function init(){
+  await DB.open();
+  await ensureSuperAdmin();
+  updateNavUI();
+  render();
+}
+init();
+</script>
+</body>
+</html>
