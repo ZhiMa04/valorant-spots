@@ -5,6 +5,7 @@ import { useStore } from '@/lib/store'
 import { GameMap } from '@/lib/types'
 import { MapPin } from 'lucide-react'
 import { SkeletonGrid, ErrorState } from './Loading'
+import { SmartImage } from './SmartImage'
 
 // 地图选择页：13个地图网格，使用 WebP 图片
 export function MapsView() {
@@ -44,11 +45,10 @@ export function MapsView() {
           >
             {/* 地图图片（透明底色） */}
             <div className="aspect-[4/3] overflow-hidden bg-muted">
-              <img
+              <SmartImage
                 src={`/maps/${map.name}.webp`}
                 alt={map.name}
-                loading="lazy"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                className="group-hover:scale-105 transition-transform duration-300"
               />
             </div>
 

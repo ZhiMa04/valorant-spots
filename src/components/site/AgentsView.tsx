@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '@/lib/store'
 import { Agent } from '@/lib/types'
 import { SkeletonGrid, ErrorState } from './Loading'
+import { SmartImage } from './SmartImage'
 
 // 特工选择页：29个特工，按点位数降序，0置灰
 // 苹果风格圆角正方形卡片，使用 WebP 图片，只显示名字和点位数
@@ -55,11 +56,9 @@ export function AgentsView() {
             >
               {/* 特工图片：圆角正方形（透明底色） */}
               <div className="w-full aspect-square rounded-lg overflow-hidden bg-muted mb-1">
-                <img
+                <SmartImage
                   src={`/agents/${agent.name}.webp`}
                   alt={agent.name}
-                  loading="lazy"
-                  className="w-full h-full object-cover"
                 />
               </div>
 
