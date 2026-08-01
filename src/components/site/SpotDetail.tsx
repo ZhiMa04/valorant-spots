@@ -261,22 +261,6 @@ export function SpotDetail() {
           </div>
         )}
 
-        {/* ========== 创建者信息 ========== */}
-        <div className="flex items-center gap-3 text-sm border-l-4 pl-3" style={{ borderColor: ROLE_COLOR[spot.creator?.role] || '#6b7280' }}>
-          <div>
-            <span className="font-medium">{spot.creator?.nickname}</span>
-            <span className="text-muted-foreground ml-2">#{String(spot.creatorId).padStart(5, '0')}</span>
-            {spot.creator?.role && spot.creator.role !== 'USER' && (
-              <Badge variant="secondary" className="ml-2 text-xs" style={{ color: ROLE_COLOR[spot.creator.role], background: 'transparent' }}>
-                {ROLE_LABEL[spot.creator.role]}
-              </Badge>
-            )}
-            <span className="text-muted-foreground ml-2">
-              {new Date(spot.createdAt).toLocaleString('zh-CN')}
-            </span>
-          </div>
-        </div>
-
         {/* ========== 正文 ========== */}
         <div className="text-sm leading-relaxed whitespace-pre-wrap">{spot.content}</div>
 
@@ -317,6 +301,27 @@ export function SpotDetail() {
             </div>
           </div>
         )}
+
+        {/* ========== 创建者信息 ========== */}
+        <div className="flex items-center gap-3 text-sm bg-muted/50 rounded-lg p-3 border">
+          <span className="text-muted-foreground">创建人：</span>
+          <span className="font-medium">{spot.creator?.nickname}</span>
+          <span className="text-muted-foreground font-mono">#{String(spot.creatorId).padStart(5, '0')}</span>
+          {spot.creator?.role && (
+            <span
+              className="px-1.5 py-0.5 rounded text-xs"
+              style={{
+                color: ROLE_COLOR[spot.creator.role] || '#6b7280',
+                backgroundColor: (ROLE_COLOR[spot.creator.role] || '#6b7280') + '15',
+              }}
+            >
+              {ROLE_LABEL[spot.creator.role] || '普通用户'}
+            </span>
+          )}
+          <span className="text-muted-foreground ml-auto">
+            {new Date(spot.createdAt).toLocaleString('zh-CN')}
+          </span>
+        </div>
 
         {/* ========== 操作栏 ========== */}
         <div className="flex items-center gap-3 border-t pt-4">
