@@ -26,7 +26,7 @@ export function Leaderboard() {
 
   return (
     <div className="rounded-xl border bg-card">
-      <div className="p-3 border-b">
+      <div className="p-3 border-b text-center">
         <h3 className="font-semibold text-sm">贡献榜</h3>
       </div>
       <div className="p-2">
