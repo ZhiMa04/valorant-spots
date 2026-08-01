@@ -29,25 +29,25 @@ export function FactionView() {
         <button
           onClick={() => goSpots('ATTACK')}
           className="group rounded-2xl p-8 flex flex-col items-center justify-center gap-4 transition-all hover:scale-[1.03] hover:shadow-2xl"
-          style={{ background: '#b91c1c' }}
+          style={{ background: 'rgba(185,28,28,0.5)' }}
         >
           <div className="w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-            style={{ background: 'rgba(255,255,255,0.15)' }}
+            style={{ background: 'rgba(255,255,255,0.1)' }}
           >
             <span className="text-white font-bold text-2xl">攻</span>
           </div>
           <div className="text-xl font-bold text-white tracking-wide">进攻方</div>
-          <div className="text-sm text-white/60">{attackCount} 个点位</div>
+          <div className="text-sm text-white/50">{attackCount} 个点位</div>
         </button>
 
         {/* 防守方 */}
         <button
           onClick={() => goSpots('DEFENSE')}
-          className="group rounded-2xl p-8 flex flex-col items-center justify-center gap-4 transition-all hover:scale-[1.03] hover:shadow-2xl"
-          style={{ background: '#1d4ed8' }}
+          className="group rounded-2xl p-8 flex flex-col items-center justify-center gap-4 transition-all hover:scale-[1.03] hover:shadow-2xl border"
+          style={{ background: 'rgba(29,78,216,0.5)', borderColor: 'rgba(59,130,246,0.2)' }}
         >
           <div className="w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-            style={{ background: 'rgba(255,255,255,0.15)' }}
+            style={{ background: 'rgba(255,255,255,0.1)' }}
           >
             <span className="text-white font-bold text-2xl">守</span>
           </div>
