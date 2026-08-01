@@ -9,6 +9,10 @@ import { Badge } from '@/components/ui/badge'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from '@/components/ui/dialog'
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel
+} from '@/components/ui/alert-dialog'
 import { Label } from '@/components/ui/label'
 import { DropZone } from './DropZone'
 import { ThumbsUp, ThumbsDown, Flag, ArrowLeft, Trash2, Reply, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -57,6 +61,7 @@ export function SpotDetail() {
   const [editContent, setEditContent] = useState('')
   const [editMarkerPaths, setEditMarkerPaths] = useState<string[]>([])
   const [editEffectPaths, setEditEffectPaths] = useState<string[]>([])
+  const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null)
   const [lightboxImgs, setLightboxImgs] = useState<string[]>([])
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [zoom, setZoom] = useState(1)
@@ -165,7 +170,7 @@ export function SpotDetail() {
     }
   }
 
-  // ========== 删除评论 ==========
+  // ========== 删除评论（直接从列表移除） ==========
   const handleDeleteComment = async (commentId: number) => {
     if (!csrfToken) return
     const res = await fetch(`/api/comments/${commentId}`, {
@@ -173,7 +178,11 @@ export function SpotDetail() {
       headers: { 'X-CSRF-Token': csrfToken },
     })
     if (res.ok) {
-      fetchComments()
+      // 直接从列表移除，不显示"已删除"
+      setComments(prev => prev.filter(c => c.id !== commentId).map(c => ({
+        ...c,
+        replies: c.replies?.filter(r => r.id !== commentId)
+      })))
     }
   }
 
@@ -224,7 +233,7 @@ export function SpotDetail() {
               </button>
               {canDelete && (
                 <button
-                  onClick={() => handleDeleteComment(comment.id)}
+                  onClick={() => setDeleteCommentId(comment.id)}
                   className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1"
                 >
                   <Trash2 className="h-3 w-3" /> 删除
@@ -273,16 +282,18 @@ export function SpotDetail() {
         {spot.markerImages?.length > 0 && (
           <div>
             <h3 className="font-semibold text-sm mb-2">描点图</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
               {spot.markerImages.map((img: string, i: number) => (
-                <img
-                  key={i}
-                  src={img}
-                  alt={`描点图${i+1}`}
-                  loading="lazy"
-                  className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
-                  onClick={() => { setLightboxImgs([...spot.markerImages, ...(spot.effectImages || [])]); setLightboxIndex(i); setZoom(1) }}
-                />
+                <div key={i} className="relative">
+                  <span className="absolute -left-6 top-2 text-xs text-muted-foreground font-mono">{i + 1}</span>
+                  <img
+                    src={img}
+                    alt={`描点图${i+1}`}
+                    loading="lazy"
+                    className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
+                    onClick={() => { setLightboxImgs([...spot.markerImages, ...(spot.effectImages || [])]); setLightboxIndex(i); setZoom(1) }}
+                  />
+                </div>
               ))}
             </div>
           </div>
@@ -292,16 +303,18 @@ export function SpotDetail() {
         {spot.effectImages?.length > 0 && (
           <div>
             <h3 className="font-semibold text-sm mb-2">效果图</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
               {spot.effectImages.map((img: string, i: number) => (
-                <img
-                  key={i}
-                  src={img}
-                  alt={`效果图${i+1}`}
-                  loading="lazy"
-                  className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
-                  onClick={() => { setLightboxImgs([...(spot.markerImages || []), ...spot.effectImages]); setLightboxIndex((spot.markerImages?.length || 0) + i); setZoom(1) }}
-                />
+                <div key={i} className="relative">
+                  <span className="absolute -left-6 top-2 text-xs text-muted-foreground font-mono">{(spot.markerImages?.length || 0) + i + 1}</span>
+                  <img
+                    src={img}
+                    alt={`效果图${i+1}`}
+                    loading="lazy"
+                    className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
+                    onClick={() => { setLightboxImgs([...(spot.markerImages || []), ...spot.effectImages]); setLightboxIndex((spot.markerImages?.length || 0) + i); setZoom(1) }}
+                  />
+                </div>
               ))}
             </div>
           </div>
@@ -499,6 +512,8 @@ export function SpotDetail() {
             <Button variant="outline" onClick={() => setEditOpen(false)}>取消</Button>
             <Button onClick={async () => {
               if (!csrfToken) return
+              if (editMarkerPaths.length === 0) { toast.error('至少需要一张描点图'); return }
+              if (editEffectPaths.length === 0) { toast.error('至少需要一张效果图'); return }
               const res = await fetch(`/api/spots/${selectedSpotId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
@@ -521,6 +536,23 @@ export function SpotDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ========== 删除评论确认弹窗 ========== */}
+      <AlertDialog open={!!deleteCommentId} onOpenChange={(open) => !open && setDeleteCommentId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除评论？</AlertDialogTitle>
+            <AlertDialogDescription>删除后评论将不再显示，此操作不可撤销。</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => { if (deleteCommentId) handleDeleteComment(deleteCommentId); setDeleteCommentId(null) }}
+            >确认删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ========== 图片查看器（支持缩放+左右切换） ========== */}
       <Dialog open={lightboxImgs.length > 0} onOpenChange={(open) => { if (!open) { setLightboxImgs([]); setZoom(1) } }}>
