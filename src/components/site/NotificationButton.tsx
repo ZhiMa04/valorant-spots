@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Bell, ChevronRight } from 'lucide-react'
-import { AppNotification } from '@/lib/types'
 
 const TYPE_LABELS: Record<string, string> = {
   SPOT_REJECTED: '点位审核',
@@ -34,127 +33,174 @@ const ROLE_LABELS: Record<string, string> = {
   USER: '普通用户', MEMBER: '会员', ADMIN: '管理员', SUPER_ADMIN: '高级管理员',
 }
 
-interface NotificationWithCreator extends AppNotification {
+interface NotifItem {
+  id: number
+  type: string
+  title: string
+  content: string
+  isRead: boolean
+  createdAt: string
   creator?: { id: number; nickname: string; role: string } | null
 }
 
-// 通知按钮：显示未读数量红点 + 点击查看详情
+// 通知按钮：游客也能看公告，登录用户还能看个人通知
 export function NotificationButton() {
   const { user } = useStore()
-  const [notifications, setNotifications] = useState<NotificationWithCreator[]>([])
+  const [items, setItems] = useState<NotifItem[]>([])
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState<NotificationWithCreator | null>(null)
+  const [selected, setSelected] = useState<NotifItem | null>(null)
 
-  const fetchNotifications = async () => {
-    if (!user) return
+  const fetchData = async () => {
     try {
-      const res = await fetch('/api/notifications')
-      if (res.ok) {
-        const data = await res.json()
-        setNotifications(data.notifications || [])
+      // 已登录：拉取个人通知（包含公告）
+      // 未登录：拉取公开公告
+      const url = user ? '/api/notifications' : '/api/announcements'
+      const res = await fetch(url)
+      if (!res.ok) return
+      const data = await res.json()
+
+      if (user) {
+        // 登录用户的个人通知
+        setItems(data.notifications || [])
         setUnread(data.unreadCount || 0)
+      } else {
+        // 游客的公告列表
+        const announcements = (data || []).map((a: any) => ({
+          id: a.id,
+          type: 'ANNOUNCEMENT',
+          title: a.title,
+          content: a.content,
+          isRead: true,
+          createdAt: a.createdAt,
+          creator: a.creator,
+        }))
+        setItems(announcements)
+        setUnread(0)
       }
     } catch {}
   }
 
   useEffect(() => {
-    if (user) {
-      fetchNotifications()
-      const interval = setInterval(fetchNotifications, 30000)
-      return () => clearInterval(interval)
-    }
+    fetchData()
+    const interval = setInterval(fetchData, 30000)
+    return () => clearInterval(interval)
   }, [user])
 
   const handleRead = async (id: number) => {
-    await fetch(`/api/notifications/read?id=${id}`, { method: 'POST' })
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n))
+    if (!user) return
+    const csrfToken = document.cookie.match(/csrf-token=([^;]+)/)?.[1]
+    await fetch(`/api/notifications/read?id=${id}`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken || '' },
+    })
+    setItems(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n))
     setUnread(prev => Math.max(0, prev - 1))
   }
 
-  // 点击通知 → 打开详情弹窗 + 自动标为已读
-  const handleClick = (n: NotificationWithCreator) => {
-    setSelected(n)
+  const handleClick = (item: NotifItem) => {
+    setSelected(item)
+    if (user && !item.isRead) {
+      handleRead(item.id)
+    }
     setOpen(false)
-    if (!n.isRead) handleRead(n.id)
   }
 
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative h-9 w-9">
+          <Button variant="ghost" size="sm" className="relative p-2 h-9 w-9">
             <Bell className="h-5 w-5" />
             {unread > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">
-                {unread > 9 ? '9+' : unread}
+              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                {unread > 99 ? '99+' : unread}
               </span>
             )}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-80 p-0">
-          <div className="px-3 py-2 border-b font-semibold text-sm flex items-center justify-between">
-            <span>通知</span>
-            {unread > 0 && <span className="text-xs text-red-500">{unread} 条未读</span>}
+          <div className="p-3 border-b">
+            <h3 className="font-semibold text-sm">通知公告</h3>
           </div>
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="p-4 text-center text-xs text-muted-foreground">暂无通知</div>
+          <div className="max-h-96 overflow-y-auto divide-y">
+            {items.length === 0 ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">暂无通知</div>
             ) : (
-              notifications.map(n => (
-                <button
-                  key={n.id}
+              items.slice(0, 20).map(n => (
+                <div
+                  key={`${n.type}-${n.id}`}
                   onClick={() => handleClick(n)}
-                  className={`w-full text-left px-3 py-3 border-b hover:bg-muted transition-colors flex items-start gap-2 ${!n.isRead ? 'bg-blue-50/50' : ''}`}
+                  className="p-3 hover:bg-muted cursor-pointer transition-colors"
                 >
-                  {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{n.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.content}</div>
-                    <div className="text-[10px] text-muted-foreground mt-1">{new Date(n.createdAt).toLocaleString('zh-CN')}</div>
+                  <div className="flex items-start gap-2">
+                    {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{n.title}</div>
+                      <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.content}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded"
+                          style={{
+                            color: TYPE_COLORS[n.type] || '#6b7280',
+                            backgroundColor: (TYPE_COLORS[n.type] || '#6b7280') + '15',
+                          }}
+                        >
+                          {TYPE_LABELS[n.type] || '通知'}
+                        </span>
+                        {n.creator && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {n.creator.nickname}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-muted-foreground ml-auto">
+                          {new Date(n.createdAt).toLocaleDateString('zh-CN')}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-1" />
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
-                </button>
+                </div>
               ))
             )}
           </div>
         </PopoverContent>
       </Popover>
 
-      {/* 通知详情弹窗 */}
+      {/* 详情弹窗 */}
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent>
-          {/* 顶部：类型标签 + 时间 */}
-          <div className="flex items-center justify-between mb-4">
-            <span
-              className="text-xs font-medium px-2 py-1 rounded"
-              style={{
-                color: TYPE_COLORS[selected?.type || 'OTHER'],
-                backgroundColor: (TYPE_COLORS[selected?.type || 'OTHER'] || '#6b7280') + '15',
-              }}
-            >
-              {TYPE_LABELS[selected?.type || 'OTHER']}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {selected && new Date(selected.createdAt).toLocaleString('zh-CN')}
-            </span>
-          </div>
+          <div className="space-y-4">
+            {/* 类型标签 + 时间 */}
+            <div className="flex items-center gap-2">
+              <span
+                className="text-xs px-2 py-1 rounded-full font-medium"
+                style={{
+                  color: TYPE_COLORS[selected?.type || 'OTHER'] || '#6b7280',
+                  backgroundColor: (TYPE_COLORS[selected?.type || 'OTHER'] || '#6b7280') + '15',
+                }}
+              >
+                {TYPE_LABELS[selected?.type || 'OTHER'] || '通知'}
+              </span>
+              <span className="text-xs text-muted-foreground ml-auto">
+                {selected && new Date(selected.createdAt).toLocaleString('zh-CN')}
+              </span>
+            </div>
 
-          {/* 标题 */}
-          <h2 className="text-lg font-bold mb-3">{selected?.title}</h2>
+            {/* 标题 */}
+            <h2 className="text-lg font-bold">{selected?.title}</h2>
 
-          {/* 正文 */}
-          <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed mb-4">
-            {selected?.content}
-          </div>
+            {/* 正文 */}
+            <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+              {selected?.content}
+            </div>
 
-          {/* 创建者信息 */}
-          {selected?.creator && (
-            <div className="rounded-lg bg-muted p-3 space-y-1 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">创建人：</span>
-                <span className="font-medium">{selected.creator.nickname}</span>
-                <span className="text-muted-foreground">#{String(selected.creator.id).padStart(5, '0')}</span>
+            {/* 创建人信息 */}
+            {selected?.creator && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted rounded-lg p-2.5">
+                <span>创建人：</span>
+                <span className="font-medium text-foreground">{selected.creator.nickname}</span>
+                <span className="font-mono">#{String(selected.creator.id).padStart(5, '0')}</span>
                 <span
                   className="px-1.5 py-0.5 rounded text-[10px]"
                   style={{
@@ -165,8 +211,8 @@ export function NotificationButton() {
                   {ROLE_LABELS[selected.creator.role] || selected.creator.role}
                 </span>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <DialogFooter>
             <Button onClick={() => setSelected(null)} className="w-full">确认</Button>

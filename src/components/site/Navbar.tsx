@@ -45,8 +45,8 @@ export function Navbar() {
         {/* 管理按钮 */}
         <AdminButton />
 
-        {/* 通知按钮 */}
-        {user && <NotificationButton />}
+        {/* 通知按钮（游客也可看公告） */}
+        <NotificationButton />
 
         {/* 用户身份卡 */}
         <UserCard />
