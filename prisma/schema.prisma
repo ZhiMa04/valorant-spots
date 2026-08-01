@@ -39,6 +39,7 @@ model User {
   announcements    Announcement[]
   auditLogs        AuditLog[]
   notifications    Notification[]
+  createdNotifications Notification[] @relation("NotificationCreator")
   sessions         Session[]
   replyToComments  Comment[]       @relation("ReplyToUser") // 被@回复的评论
 }
@@ -189,14 +190,16 @@ model AuditLog {
 model Notification {
   id          Int      @id @default(autoincrement())
   userId      Int      // 接收通知的用户ID
+  creatorId   Int?     // 发送者ID（管理员或系统）
   type        String   // 通知类型
   title       String   // 通知标题
   content     String   // 通知内容
-  isRead      Boolean  @default(false) // 是否已读（用于显示小红点）
-  relatedId   Int?     // 关联ID（点位ID、举报ID等）
+  isRead      Boolean  @default(false) // 是否已读
+  relatedId   Int?     // 关联ID
   createdAt   DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
+  creator User? @relation("NotificationCreator", fields: [creatorId], references: [id])
 }
 
 // ==================== 会话表（登录态管理） ====================

@@ -67,6 +67,7 @@ export const POST = withAdmin(async (req, admin) => {
     await db.notification.create({
       data: {
         userId: spot.creatorId,
+        creatorId: admin.id,
         type: 'SPOT_REJECTED',
         title: '点位未通过审核',
         content: `您的点位"${spot.title}"未通过审核，原因：${reason.trim()}`,

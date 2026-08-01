@@ -10,18 +10,41 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Bell, ChevronRight } from 'lucide-react'
 import { AppNotification } from '@/lib/types'
 
+const TYPE_LABELS: Record<string, string> = {
+  SPOT_REJECTED: '点位审核',
+  REPORT_HANDLED: '举报处理',
+  ANNOUNCEMENT: '公告',
+  OTHER: '通知',
+}
+
+const TYPE_COLORS: Record<string, string> = {
+  SPOT_REJECTED: '#dc2626',
+  REPORT_HANDLED: '#16a34a',
+  ANNOUNCEMENT: '#2563eb',
+  OTHER: '#6b7280',
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  USER: '普通用户', MEMBER: '会员', ADMIN: '管理员', SUPER_ADMIN: '高级管理员',
+}
+
+interface NotificationWithCreator extends AppNotification {
+  creator?: { id: number; nickname: string; role: string } | null
+}
+
 // 通知按钮：显示未读数量红点 + 点击查看详情
 export function NotificationButton() {
   const { user } = useStore()
-  const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const [notifications, setNotifications] = useState<NotificationWithCreator[]>([])
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState<AppNotification | null>(null)
+  const [selected, setSelected] = useState<NotificationWithCreator | null>(null)
 
   const fetchNotifications = async () => {
     if (!user) return
@@ -43,72 +66,56 @@ export function NotificationButton() {
     }
   }, [user])
 
-  if (!user) return null
-
   const handleRead = async (id: number) => {
-    const csrf = document.cookie.match(/csrf-token=([^;]+)/)?.[1]
-    await fetch(`/api/notifications/read?id=${id}`, { method: 'POST', headers: { 'X-CSRF-Token': csrf || '' } })
-    fetchNotifications()
+    await fetch(`/api/notifications/read?id=${id}`, { method: 'POST' })
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n))
+    setUnread(prev => Math.max(0, prev - 1))
   }
 
-  // 点击通知 → 自动标为已读 + 打开详情弹窗
-  const handleClick = (n: AppNotification) => {
+  // 点击通知 → 打开详情弹窗 + 自动标为已读
+  const handleClick = (n: NotificationWithCreator) => {
     setSelected(n)
     setOpen(false)
     if (!n.isRead) handleRead(n.id)
-  }
-
-  // 通知类型图标/颜色
-  const typeStyle: Record<string, { icon: string; color: string }> = {
-    SPOT_REJECTED: { icon: '⚠️', color: '#dc2626' },
-    REPORT_HANDLED: { icon: '✅', color: '#16a34a' },
-    ANNOUNCEMENT: { icon: '📢', color: '#2563eb' },
-    OTHER: { icon: '🔔', color: '#6b7280' },
   }
 
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative h-9 w-9">
             <Bell className="h-5 w-5" />
             {unread > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">
+              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">
                 {unread > 9 ? '9+' : unread}
               </span>
             )}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-80 p-0">
-          <div className="p-3 border-b flex items-center justify-between">
-            <h3 className="font-semibold text-sm">通知</h3>
-            {unread > 0 && <span className="text-xs text-blue-600">{unread} 条未读</span>}
+          <div className="px-3 py-2 border-b font-semibold text-sm flex items-center justify-between">
+            <span>通知</span>
+            {unread > 0 && <span className="text-xs text-red-500">{unread} 条未读</span>}
           </div>
-          <div className="max-h-80 overflow-y-auto divide-y">
+          <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">暂无通知</div>
+              <div className="p-4 text-center text-xs text-muted-foreground">暂无通知</div>
             ) : (
-              notifications.map(n => {
-                const ts = typeStyle[n.type] || typeStyle.OTHER
-                return (
-                  <button
-                    key={n.id}
-                    onClick={() => handleClick(n)}
-                    className={`w-full text-left p-3 hover:bg-muted transition-colors flex items-start gap-2 ${!n.isRead ? 'bg-blue-50/50' : ''}`}
-                  >
-                    {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />}
-                    <span className="text-base flex-shrink-0">{ts.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{n.title}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.content}</div>
-                      <div className="text-[10px] text-muted-foreground mt-1">
-                        {new Date(n.createdAt).toLocaleString('zh-CN')}
-                      </div>
-                    </div>
-                    <ChevronRight className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-1.5" />
-                  </button>
-                )
-              })
+              notifications.map(n => (
+                <button
+                  key={n.id}
+                  onClick={() => handleClick(n)}
+                  className={`w-full text-left px-3 py-3 border-b hover:bg-muted transition-colors flex items-start gap-2 ${!n.isRead ? 'bg-blue-50/50' : ''}`}
+                >
+                  {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{n.title}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.content}</div>
+                    <div className="text-[10px] text-muted-foreground mt-1">{new Date(n.createdAt).toLocaleString('zh-CN')}</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+                </button>
+              ))
             )}
           </div>
         </PopoverContent>
@@ -116,44 +123,54 @@ export function NotificationButton() {
 
       {/* 通知详情弹窗 */}
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-lg">
-          {selected && (
-            <div className="space-y-4">
-              {/* 类型标签 */}
+        <DialogContent>
+          {/* 顶部：类型标签 + 时间 */}
+          <div className="flex items-center justify-between mb-4">
+            <span
+              className="text-xs font-medium px-2 py-1 rounded"
+              style={{
+                color: TYPE_COLORS[selected?.type || 'OTHER'],
+                backgroundColor: (TYPE_COLORS[selected?.type || 'OTHER'] || '#6b7280') + '15',
+              }}
+            >
+              {TYPE_LABELS[selected?.type || 'OTHER']}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {selected && new Date(selected.createdAt).toLocaleString('zh-CN')}
+            </span>
+          </div>
+
+          {/* 标题 */}
+          <h2 className="text-lg font-bold mb-3">{selected?.title}</h2>
+
+          {/* 正文 */}
+          <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed mb-4">
+            {selected?.content}
+          </div>
+
+          {/* 创建者信息 */}
+          {selected?.creator && (
+            <div className="rounded-lg bg-muted p-3 space-y-1 text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-lg">{(typeStyle[selected.type] || typeStyle.OTHER).icon}</span>
+                <span className="text-muted-foreground">创建人：</span>
+                <span className="font-medium">{selected.creator.nickname}</span>
+                <span className="text-muted-foreground">#{String(selected.creator.id).padStart(5, '0')}</span>
                 <span
-                  className="text-xs px-2 py-0.5 rounded-full"
-                  style={{ color: (typeStyle[selected.type] || typeStyle.OTHER).color, backgroundColor: (typeStyle[selected.type] || typeStyle.OTHER).color + '15' }}
+                  className="px-1.5 py-0.5 rounded text-[10px]"
+                  style={{
+                    color: TYPE_COLORS[selected.type] || '#6b7280',
+                    backgroundColor: (TYPE_COLORS[selected.type] || '#6b7280') + '15',
+                  }}
                 >
-                  {selected.type === 'SPOT_REJECTED' ? '点位审核' :
-                   selected.type === 'REPORT_HANDLED' ? '举报处理' :
-                   selected.type === 'ANNOUNCEMENT' ? '公告' : '通知'}
-                </span>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  {new Date(selected.createdAt).toLocaleString('zh-CN')}
+                  {ROLE_LABELS[selected.creator.role] || selected.creator.role}
                 </span>
               </div>
-
-              {/* 标题 */}
-              <h2 className="text-lg font-bold">{selected.title}</h2>
-
-              {/* 正文 */}
-              <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                {selected.content}
-              </div>
-
-              {/* 关联链接 */}
-              {selected.relatedId && (
-                <a
-                  href={`/api/spots/${selected.relatedId}`}
-                  className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-                >
-                  查看关联点位 →
-                </a>
-              )}
             </div>
           )}
+
+          <DialogFooter>
+            <Button onClick={() => setSelected(null)} className="w-full">确认</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
