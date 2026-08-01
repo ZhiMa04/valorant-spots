@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { Search, Ban, KeyRound } from 'lucide-react'
+import { Search, Ban, KeyRound, Lock } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from '@/components/ui/dialog'
@@ -19,20 +19,23 @@ const ROLE_COLOR: Record<string, string> = { USER: '#6b7280', MEMBER: '#d97706',
 const ROLE_LABEL: Record<string, string> = { USER: '普通用户', MEMBER: '会员', ADMIN: '管理员', SUPER_ADMIN: '高级管理员' }
 
 interface UserRow {
-  id: number; nickname: string; role: string; status: string
+  id: number; phone: string; nickname: string; role: string; status: string
   uploadCount: number; likeCount: number; createdAt: string
 }
 
 export function UserManagement() {
-  const { user: admin, triggerRefresh } = useStore()
+  const { user: admin } = useStore()
   const [users, setUsers] = useState<UserRow[]>([])
   const [search, setSearch] = useState('')
   const [editUser, setEditUser] = useState<UserRow | null>(null)
   const [editNickname, setEditNickname] = useState('')
-  const [editRole, setEditRole] = useState('')
+  const [editRole, setEditRole] = useState('USER')
+  const [resetUser, setResetUser] = useState<UserRow | null>(null)
+  const [newPassword, setNewPassword] = useState('')
 
   const fetchUsers = useCallback(async () => {
-    const res = await fetch(`/api/admin/users${search ? `?search=${encodeURIComponent(search)}` : ''}`)
+    const url = search ? `/api/admin/users?search=${encodeURIComponent(search)}` : '/api/admin/users'
+    const res = await fetch(url)
     if (res.ok) setUsers(await res.json())
   }, [search])
 
@@ -41,14 +44,14 @@ export function UserManagement() {
   const getCsrf = () => document.cookie.match(/csrf-token=([^;]+)/)?.[1] || ''
 
   const handleBan = async (userId: number, currentStatus: string) => {
-    const action = currentStatus === 'NORMAL' ? 'ban' : 'unban'
+    const action = currentStatus === 'BLOCKED' ? 'unban' : 'ban'
     const res = await fetch(`/api/admin/ban`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrf() },
       body: JSON.stringify({ userId, action }),
     })
     const data = await res.json()
-    toast[data.error ? 'error' : 'success'](data.error || data.message)
+    toast[data.error ? 'error' : 'success'](data.error || (action === 'ban' ? '已拉黑' : '已解除'))
     fetchUsers()
   }
 
@@ -65,6 +68,32 @@ export function UserManagement() {
     fetchUsers()
   }
 
+  const handleResetPassword = async () => {
+    if (!resetUser || newPassword.length < 6) return
+    const res = await fetch(`/api/admin/users/reset-password?userId=${resetUser.id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrf() },
+      body: JSON.stringify({ newPassword }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      toast.success(`已重置 ${resetUser.nickname} 的密码`)
+      setResetUser(null)
+      setNewPassword('')
+    } else {
+      toast.error(data.error || '重置失败')
+    }
+  }
+
+  // 判断是否可操作（不能操作自己、同级、上级）
+  const canOperate = (u: UserRow) => {
+    if (!admin) return false
+    if (u.id === admin.id) return false
+    if (u.role === 'SUPER_ADMIN' && admin.role !== 'SUPER_ADMIN') return false
+    if (u.role === 'ADMIN' && admin.role !== 'SUPER_ADMIN') return false
+    return true
+  }
+
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">用户管理</h2>
@@ -77,6 +106,7 @@ export function UserManagement() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-8"
+            onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
           />
         </div>
         <Button onClick={fetchUsers}>搜索</Button>
@@ -84,23 +114,29 @@ export function UserManagement() {
 
       <div className="rounded-xl border divide-y">
         {users.map(u => (
-          <div key={u.id} className="flex items-center gap-3 px-4 py-3">
-            <span className="text-sm font-mono w-12">#{String(u.id).padStart(5, '0')}</span>
+          <div key={u.id} className="flex items-center gap-2 px-4 py-3 flex-wrap">
+            <span className="text-sm font-mono w-14">#{String(u.id).padStart(5, '0')}</span>
             <span className="w-2 h-2 rounded-full" style={{ background: ROLE_COLOR[u.role] }} />
             <div className="flex-1 min-w-0">
-              <span className="font-medium text-sm">{u.nickname}</span>
-              {u.status === 'BLOCKED' && <Badge variant="destructive" className="ml-2 text-xs">已拉黑</Badge>}
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sm">{u.nickname}</span>
+                {u.status === 'BLOCKED' && <Badge variant="destructive" className="text-xs">已拉黑</Badge>}
+              </div>
+              <span className="text-xs text-muted-foreground">{u.phone}</span>
             </div>
             <span className="text-xs text-muted-foreground hidden sm:inline">{ROLE_LABEL[u.role]}</span>
             <span className="text-xs text-muted-foreground hidden sm:inline">发布{u.uploadCount}</span>
             <span className="text-xs text-muted-foreground hidden sm:inline">赞{u.likeCount}</span>
             <div className="flex gap-1">
-              {u.role !== 'ADMIN' && u.role !== 'SUPER_ADMIN' && (
+              {canOperate(u) && (
                 <>
-                  <Button size="sm" variant="ghost" onClick={() => { setEditUser(u); setEditNickname(u.nickname); setEditRole(u.role) }}>
+                  <Button size="sm" variant="ghost" onClick={() => { setEditUser(u); setEditNickname(u.nickname); setEditRole(u.role) }} title="编辑">
                     <KeyRound className="h-3 w-3" />
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleBan(u.id, u.status)}>
+                  <Button size="sm" variant="ghost" onClick={() => { setResetUser(u); setNewPassword('') }} title="重置密码">
+                    <Lock className="h-3 w-3" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleBan(u.id, u.status)} title="拉黑">
                     <Ban className="h-3 w-3" />
                   </Button>
                 </>
@@ -110,6 +146,7 @@ export function UserManagement() {
         ))}
       </div>
 
+      {/* 编辑用户弹窗 */}
       <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>编辑用户 #{String(editUser?.id || 0).padStart(5, '0')}</DialogTitle></DialogHeader>
@@ -132,6 +169,39 @@ export function UserManagement() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditUser(null)}>取消</Button>
             <Button onClick={handleEditUser}>确认</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 重置密码弹窗 */}
+      <Dialog open={!!resetUser} onOpenChange={(o) => !o && setResetUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>重置密码 — {resetUser?.nickname}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="reset-pwd">新密码（至少6位）</Label>
+              <Input
+                id="reset-pwd"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="输入新密码"
+              />
+              {newPassword && newPassword.length >= 6 && (
+                <p className="text-xs text-green-600">✓ 密码长度合格</p>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              重置后请将新密码告知用户，用户下次登录后可自行修改
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetUser(null)}>取消</Button>
+            <Button onClick={handleResetPassword} disabled={newPassword.length < 6}>
+              确认重置
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
