@@ -63,9 +63,12 @@ export const PATCH = withAdmin(async (req, admin) => {
     return NextResponse.json({ error: '不能修改同级或上级' }, { status: 403 })
   }
 
-  // 限制只能设置 USER 或 MEMBER
-  if (role && !['USER', 'MEMBER'].includes(role)) {
-    return NextResponse.json({ error: '只能设置为普通用户或会员' }, { status: 400 })
+  // 角色权限：普通管理员只能设 USER/MEMBER，高级管理员可设 USER/MEMBER/ADMIN
+  if (role) {
+    const allowedRoles = admin.role === 'SUPER_ADMIN' ? ['USER', 'MEMBER', 'ADMIN'] : ['USER', 'MEMBER']
+    if (!allowedRoles.includes(role)) {
+      return NextResponse.json({ error: '无权设置该身份' }, { status: 400 })
+    }
   }
 
   // 昵称查重

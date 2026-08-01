@@ -167,6 +167,7 @@ export function UserManagement() {
                 <SelectContent>
                   <SelectItem value="USER">普通用户</SelectItem>
                   <SelectItem value="MEMBER">会员</SelectItem>
+                  {isSuperAdmin && <SelectItem value="ADMIN">管理员</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
