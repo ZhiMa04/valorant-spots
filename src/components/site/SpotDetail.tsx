@@ -54,6 +54,7 @@ export function SpotDetail() {
   const [editOpen, setEditOpen] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editContent, setEditContent] = useState('')
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null)
 
   // 评论相关
   const [newComment, setNewComment] = useState('')
@@ -283,9 +284,16 @@ export function SpotDetail() {
         {spot.markerImages?.length > 0 && (
           <div>
             <h3 className="font-semibold text-sm mb-2">描点图</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {spot.markerImages.map((img: string, i: number) => (
-                <img key={i} src={img} alt={`描点图${i+1}`} className="rounded-lg border w-full" />
+                <img
+                  key={i}
+                  src={img}
+                  alt={`描点图${i+1}`}
+                  loading="lazy"
+                  className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
+                  onClick={() => setLightboxImg(img)}
+                />
               ))}
             </div>
           </div>
@@ -295,9 +303,16 @@ export function SpotDetail() {
         {spot.effectImages?.length > 0 && (
           <div>
             <h3 className="font-semibold text-sm mb-2">效果图</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {spot.effectImages.map((img: string, i: number) => (
-                <img key={i} src={img} alt={`效果图${i+1}`} className="rounded-lg border w-full" />
+                <img
+                  key={i}
+                  src={img}
+                  alt={`效果图${i+1}`}
+                  loading="lazy"
+                  className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
+                  onClick={() => setLightboxImg(img)}
+                />
               ))}
             </div>
           </div>
@@ -469,6 +484,20 @@ export function SpotDetail() {
               }
             }}>保存</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ========== 图片查看器（点击放大） ========== */}
+      <Dialog open={!!lightboxImg} onOpenChange={() => setLightboxImg(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+          {lightboxImg && (
+            <img
+              src={lightboxImg}
+              alt="查看大图"
+              className="w-full h-full object-contain"
+              onClick={() => setLightboxImg(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
