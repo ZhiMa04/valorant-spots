@@ -6,7 +6,7 @@ import { GameMap } from '@/lib/types'
 import { MapPin } from 'lucide-react'
 import { SkeletonGrid, ErrorState } from './Loading'
 
-// 地图颜色（与参考HTML一致）
+// 地图颜色（图片加载失败时的备用色）
 const MAP_COLORS = [
   '#c4a0b0', '#6b8fbf', '#e8a0b0', '#e8946b', '#a0c8d8',
   '#7fa8b8', '#b0a8d0', '#e8c97a', '#d4a574', '#c4b090',
@@ -34,16 +34,11 @@ export function MapsView() {
   if (loading) return (
     <div>
       <h2 className="text-xl font-bold mb-4">选择地图</h2>
-      <SkeletonGrid count={10} />
+      <SkeletonGrid count={13} />
     </div>
   )
 
-  if (error) return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">选择地图</h2>
-      <ErrorState message={error} onRetry={fetchMaps} />
-    </div>
-  )
+  if (error) return <ErrorState message={error} onRetry={fetchMaps} />
 
   return (
     <div>
@@ -55,14 +50,17 @@ export function MapsView() {
             onClick={() => goAgents(map.id, map.name)}
             className="group relative overflow-hidden rounded-lg border hover:border-primary hover:shadow-md transition-all"
           >
-            {/* 地图图片/色块 */}
+            {/* 地图图片 */}
             <div
-              className="aspect-[4/3] flex items-center justify-center"
-              style={{ background: `linear-gradient(135deg, ${MAP_COLORS[i % MAP_COLORS.length]}, ${MAP_COLORS[i % MAP_COLORS.length]}dd)` }}
+              className="aspect-[4/3] flex items-center justify-center overflow-hidden"
+              style={{ background: MAP_COLORS[i % MAP_COLORS.length] }}
             >
-              <span className="text-white font-bold text-lg drop-shadow-lg">
-                {map.name}
-              </span>
+              <img
+                src={`/maps/${map.name}.png`}
+                alt={map.name}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
             </div>
 
             {/* 点位数 */}

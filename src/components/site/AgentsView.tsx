@@ -5,7 +5,7 @@ import { useStore } from '@/lib/store'
 import { Agent } from '@/lib/types'
 import { SkeletonGrid, ErrorState } from './Loading'
 
-// 特工角色颜色
+// 特工角色颜色（图片加载失败时的备用色）
 const ROLE_COLORS: Record<string, string> = {
   DUELIST: '#e8743c',
   SENTINEL: '#5b8aad',
@@ -14,7 +14,7 @@ const ROLE_COLORS: Record<string, string> = {
 }
 
 // 特工选择页：29个特工，按点位数降序，0置灰
-// 苹果风格圆角正方形卡片，只显示名字和点位数
+// 苹果风格圆角正方形卡片，使用图片，只显示名字和点位数
 export function AgentsView() {
   const { selectedMapId, goFaction } = useStore()
   const [agents, setAgents] = useState<Agent[]>([])
@@ -40,30 +40,18 @@ export function AgentsView() {
   if (loading) return (
     <div>
       <h2 className="text-xl font-bold mb-4">选择特工</h2>
-      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div key={i} className="rounded-xl border p-1.5">
-            <div className="aspect-square rounded-lg bg-muted animate-pulse mb-1" />
-            <div className="h-2 bg-muted rounded animate-pulse" />
-          </div>
-        ))}
-      </div>
+      <SkeletonGrid count={12} />
     </div>
   )
 
-  if (error) return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">选择特工</h2>
-      <ErrorState message={error} onRetry={fetchAgents} />
-    </div>
-  )
+  if (error) return <ErrorState message={error} onRetry={fetchAgents} />
 
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">选择特工</h2>
-      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5">
-        {agents.map((agent) => {
-          const hasSpots = (agent as any).spotCount > 0
+      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2.5">
+        {agents.map((agent: any) => {
+          const hasSpots = agent.spotCount > 0
           const color = agent.role ? ROLE_COLORS[agent.role] : '#888888'
 
           return (
@@ -76,14 +64,20 @@ export function AgentsView() {
                   : 'opacity-40 hover:opacity-60 cursor-pointer'
               }`}
             >
-              {/* 特工头像：圆角正方形 */}
+              {/* 特工图片：圆角正方形 */}
               <div
-                className="w-full aspect-square rounded-lg flex items-center justify-center mb-1"
-                style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }}
+                className="w-full aspect-square rounded-lg flex items-center justify-center mb-1 overflow-hidden"
+                style={{ background: color }}
               >
-                <span className="text-white font-bold text-sm drop-shadow">
-                  {agent.name.charAt(0)}
-                </span>
+                <img
+                  src={`/agents/${agent.name}.png`}
+                  alt={agent.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement
+                    img.style.display = 'none'
+                  }}
+                />
               </div>
 
               {/* 特工名 */}
@@ -91,7 +85,7 @@ export function AgentsView() {
 
               {/* 点位数 */}
               <div className={`text-[10px] leading-tight ${hasSpots ? 'text-primary' : 'text-muted-foreground'}`}>
-                点位数 {(agent as any).spotCount}
+                点位数 {agent.spotCount}
               </div>
             </button>
           )
