@@ -81,65 +81,7 @@ export const useStore = create<AppState>((set, get) => ({
   selectedSpotId: null,
   selectedSpotTitle: null,
 
-  // 保存当前状态到历史，然后跳转
-  _pushHistory: () => {
-    const s = get()
-    get().navHistory = [...s.navHistory, {
-      view: s.currentView,
-      mapId: s.selectedMapId, mapName: s.selectedMapName,
-      agentId: s.selectedAgentId, agentName: s.selectedAgentName,
-      faction: s.selectedFaction,
-      spotId: s.selectedSpotId, spotTitle: s.selectedSpotTitle,
-    }]
-  },
-
-  goMaps: () => {
-    set({
-      currentView: 'maps',
-      selectedMapId: null, selectedMapName: null,
-      selectedAgentId: null, selectedAgentName: null,
-      selectedFaction: null, selectedSpotId: null, selectedSpotTitle: null,
-      adminView: null, navHistory: [],
-    })
-  },
-  goAgents: (mapId, mapName) => {
-    get()._pushHistory()
-    set({
-      currentView: 'agents',
-      selectedMapId: mapId, selectedMapName: mapName,
-      selectedAgentId: null, selectedAgentName: null,
-      selectedFaction: null, selectedSpotId: null, selectedSpotTitle: null,
-      adminView: null,
-    })
-  },
-  goFaction: (agentId, agentName) => {
-    get()._pushHistory()
-    set({
-      currentView: 'faction',
-      selectedAgentId: agentId, selectedAgentName: agentName,
-      selectedFaction: null, selectedSpotId: null, selectedSpotTitle: null,
-      adminView: null,
-    })
-  },
-  goSpots: (faction) => {
-    get()._pushHistory()
-    set({
-      currentView: 'spots',
-      selectedFaction: faction,
-      selectedSpotId: null, selectedSpotTitle: null,
-      adminView: null,
-    })
-  },
-  goDetail: (spotId, spotTitle) => {
-    get()._pushHistory()
-    set({
-      currentView: 'detail',
-      selectedSpotId: spotId, selectedSpotTitle: spotTitle,
-      adminView: null,
-    })
-  },
-  goUpload: () => set({ uploadDialogOpen: true }),
-
+  // 返回上一页：从历史栈弹出上一个状态
   goBack: () => {
     const history = get().navHistory
     if (history.length === 0) {
@@ -156,6 +98,79 @@ export const useStore = create<AppState>((set, get) => ({
       navHistory: history.slice(0, -1),
     })
   },
+
+  goMaps: () => set({
+    currentView: 'maps',
+    selectedMapId: null, selectedMapName: null,
+    selectedAgentId: null, selectedAgentName: null,
+    selectedFaction: null, selectedSpotId: null, selectedSpotTitle: null,
+    adminView: null, navHistory: [],
+  }),
+  goAgents: (mapId, mapName) => {
+    const s = get()
+    set({
+      currentView: 'agents',
+      selectedMapId: mapId, selectedMapName: mapName,
+      selectedAgentId: null, selectedAgentName: null,
+      selectedFaction: null, selectedSpotId: null, selectedSpotTitle: null,
+      adminView: null,
+      navHistory: [...s.navHistory, {
+        view: s.currentView,
+        mapId: s.selectedMapId, mapName: s.selectedMapName,
+        agentId: s.selectedAgentId, agentName: s.selectedAgentName,
+        faction: s.selectedFaction,
+        spotId: s.selectedSpotId, spotTitle: s.selectedSpotTitle,
+      }],
+    })
+  },
+  goFaction: (agentId, agentName) => {
+    const s = get()
+    set({
+      currentView: 'faction',
+      selectedAgentId: agentId, selectedAgentName: agentName,
+      selectedFaction: null, selectedSpotId: null, selectedSpotTitle: null,
+      adminView: null,
+      navHistory: [...s.navHistory, {
+        view: s.currentView,
+        mapId: s.selectedMapId, mapName: s.selectedMapName,
+        agentId: s.selectedAgentId, agentName: s.selectedAgentName,
+        faction: s.selectedFaction,
+        spotId: s.selectedSpotId, spotTitle: s.selectedSpotTitle,
+      }],
+    })
+  },
+  goSpots: (faction) => {
+    const s = get()
+    set({
+      currentView: 'spots',
+      selectedFaction: faction,
+      selectedSpotId: null, selectedSpotTitle: null,
+      adminView: null,
+      navHistory: [...s.navHistory, {
+        view: s.currentView,
+        mapId: s.selectedMapId, mapName: s.selectedMapName,
+        agentId: s.selectedAgentId, agentName: s.selectedAgentName,
+        faction: s.selectedFaction,
+        spotId: s.selectedSpotId, spotTitle: s.selectedSpotTitle,
+      }],
+    })
+  },
+  goDetail: (spotId, spotTitle) => {
+    const s = get()
+    set({
+      currentView: 'detail',
+      selectedSpotId: spotId, selectedSpotTitle: spotTitle,
+      adminView: null,
+      navHistory: [...s.navHistory, {
+        view: s.currentView,
+        mapId: s.selectedMapId, mapName: s.selectedMapName,
+        agentId: s.selectedAgentId, agentName: s.selectedAgentName,
+        faction: s.selectedFaction,
+        spotId: s.selectedSpotId, spotTitle: s.selectedSpotTitle,
+      }],
+    })
+  },
+  goUpload: () => set({ uploadDialogOpen: true }),
 
   adminView: null,
   setAdminView: (v) => set({ adminView: v }),
