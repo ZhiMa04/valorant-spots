@@ -90,7 +90,14 @@ export function UploadDialog() {
             <Select value={form.mapId} onValueChange={v => setForm({ ...form, mapId: v })}>
               <SelectTrigger><SelectValue placeholder="选择地图" /></SelectTrigger>
               <SelectContent>
-                {maps.map((m: any) => <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>)}
+                {maps.map((m: any) => (
+                  <SelectItem key={m.id} value={String(m.id)}>
+                    <div className="flex items-center gap-2">
+                      <img src={`/maps/${m.name}.webp`} alt={m.name} className="w-8 h-6 rounded object-cover" />
+                      <span>{m.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -101,7 +108,14 @@ export function UploadDialog() {
             <Select value={form.agentId} onValueChange={v => setForm({ ...form, agentId: v })}>
               <SelectTrigger><SelectValue placeholder="选择特工" /></SelectTrigger>
               <SelectContent>
-                {agents.map((a: any) => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}
+                {agents.map((a: any) => (
+                  <SelectItem key={a.id} value={String(a.id)}>
+                    <div className="flex items-center gap-2">
+                      <img src={`/agents/${a.name}.webp`} alt={a.name} className="w-6 h-6 rounded object-cover" />
+                      <span>{a.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
