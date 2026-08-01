@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { withAdmin } from '@/lib/middleware'
+import { withSuperAdmin } from '@/lib/middleware'
 import { hashPassword } from '@/lib/auth'
 import { z } from 'zod'
 
-// POST /api/admin/users/reset-password?userId=X — 管理员重置用户密码
-export const POST = withAdmin(async (req, admin) => {
+// POST /api/admin/users/reset-password?userId=X — 高级管理员重置用户密码
+export const POST = withSuperAdmin(async (req, admin) => {
   try {
     const { searchParams } = new URL(req.url)
     const userId = Number(searchParams.get('userId'))

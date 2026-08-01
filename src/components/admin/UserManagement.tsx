@@ -25,6 +25,7 @@ interface UserRow {
 
 export function UserManagement() {
   const { user: admin } = useStore()
+  const isSuperAdmin = admin?.role === 'SUPER_ADMIN'
   const [users, setUsers] = useState<UserRow[]>([])
   const [search, setSearch] = useState('')
   const [editUser, setEditUser] = useState<UserRow | null>(null)
@@ -122,7 +123,9 @@ export function UserManagement() {
                 <span className="font-medium text-sm">{u.nickname}</span>
                 {u.status === 'BLOCKED' && <Badge variant="destructive" className="text-xs">已拉黑</Badge>}
               </div>
-              <span className="text-xs text-muted-foreground">{u.phone}</span>
+              {isSuperAdmin && (
+                <span className="text-xs text-muted-foreground">{u.phone}</span>
+              )}
             </div>
             <span className="text-xs text-muted-foreground hidden sm:inline">{ROLE_LABEL[u.role]}</span>
             <span className="text-xs text-muted-foreground hidden sm:inline">发布{u.uploadCount}</span>
@@ -133,9 +136,11 @@ export function UserManagement() {
                   <Button size="sm" variant="ghost" onClick={() => { setEditUser(u); setEditNickname(u.nickname); setEditRole(u.role) }} title="编辑">
                     <KeyRound className="h-3 w-3" />
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => { setResetUser(u); setNewPassword('') }} title="重置密码">
-                    <Lock className="h-3 w-3" />
-                  </Button>
+                  {isSuperAdmin && (
+                    <Button size="sm" variant="ghost" onClick={() => { setResetUser(u); setNewPassword('') }} title="重置密码">
+                      <Lock className="h-3 w-3" />
+                    </Button>
+                  )}
                   <Button size="sm" variant="ghost" onClick={() => handleBan(u.id, u.status)} title="拉黑">
                     <Ban className="h-3 w-3" />
                   </Button>
