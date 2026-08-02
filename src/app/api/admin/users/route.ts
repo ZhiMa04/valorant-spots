@@ -84,6 +84,10 @@ export const PATCH = withAdmin(async (req, admin) => {
 
   // 角色权限：普通管理员只能设 USER/MEMBER，高级管理员可设全部
   if (role) {
+    // 安全保护：不能降自己的身份（防止误操作导致无人管理）
+    if (userId === admin.id && role !== admin.role) {
+      return NextResponse.json({ error: '不能修改自己的身份，请让其他管理员操作' }, { status: 400 })
+    }
     const allowedRoles = admin.role === 'SUPER_ADMIN'
       ? ['USER', 'MEMBER', 'ADMIN', 'SUPER_ADMIN']
       : ['USER', 'MEMBER']

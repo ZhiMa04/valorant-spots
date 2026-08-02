@@ -170,7 +170,11 @@ export function UserManagement() {
             </div>
             <div className="space-y-2">
               <Label>身份</Label>
-              <Select value={editRole} onValueChange={setEditRole}>
+              <Select
+                value={editRole}
+                onValueChange={setEditRole}
+                disabled={editUser?.id === admin?.id}
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="USER">普通用户</SelectItem>
@@ -179,6 +183,9 @@ export function UserManagement() {
                   {isSuperAdmin && <SelectItem value="SUPER_ADMIN">高级管理员</SelectItem>}
                 </SelectContent>
               </Select>
+              {editUser?.id === admin?.id && (
+                <p className="text-xs text-muted-foreground">不能修改自己的身份</p>
+              )}
             </div>
           </div>
           <DialogFooter>
