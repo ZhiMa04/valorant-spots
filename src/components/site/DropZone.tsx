@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { Upload, X } from 'lucide-react'
+import Image from 'next/image'
 
 interface DropZoneProps {
   label: string
@@ -170,7 +171,7 @@ export function DropZone({ label, onUpload, uploadedPaths, onRemove, maxSize = 1
         <div className="flex flex-wrap gap-2 mt-2">
           {uploadedPaths.map((path, i) => (
             <div key={i} className="relative group w-20 h-20 rounded-lg overflow-hidden border">
-              <img src={path} alt="" className="w-full h-full object-cover" />
+              <Image src={path} alt="" fill sizes="80px" className="object-cover" />
               <button
                 onClick={(e) => { e.stopPropagation(); onRemove(i) }}
                 className="absolute top-0 right-0 bg-black/60 text-white rounded-bl-lg p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"

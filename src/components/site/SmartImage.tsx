@@ -1,14 +1,17 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 // 带占位骨架和渐显动画的图片组件
-export function SmartImage({ src, alt, className, onClick, loading = 'lazy' }: {
+// 使用 next/image 自动优化：WebP/AVIF 转换 + 响应式尺寸
+export function SmartImage({ src, alt, className, onClick, loading = 'lazy', sizes = '100vw' }: {
   src: string
   alt: string
   className?: string
   onClick?: () => void
   loading?: 'lazy' | 'eager'
+  sizes?: string
 }) {
   const [loaded, setLoaded] = useState(false)
 
@@ -17,14 +20,16 @@ export function SmartImage({ src, alt, className, onClick, loading = 'lazy' }: {
       {!loaded && (
         <div className="absolute inset-0 bg-muted animate-pulse" />
       )}
-      <img
+      <Image
         src={src}
         alt={alt}
+        fill
+        sizes={sizes}
         loading={loading}
-        decoding="async"
         onLoad={() => setLoaded(true)}
-        className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'} ${onClick ? 'cursor-pointer' : ''}`}
+        className={`object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'} ${onClick ? 'cursor-pointer' : ''}`}
         onClick={onClick}
+        draggable={false}
       />
     </div>
   )

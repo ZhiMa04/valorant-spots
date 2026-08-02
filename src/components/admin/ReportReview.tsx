@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { Check, Trash, Eye } from 'lucide-react'
 import {
@@ -105,7 +106,9 @@ export function ReportReview() {
                   <div className="text-sm font-medium mb-2">描点图</div>
                   <div className="flex flex-col gap-2">
                     {detail.spot.markerImages.map((img: string, i: number) => (
-                      <img key={i} src={img} alt={`描点图${i+1}`} className="rounded-lg border w-full" loading="lazy" />
+                      <div key={i} className="relative w-full aspect-video rounded-lg border overflow-hidden">
+                        <Image src={img} alt={`描点图${i+1}`} fill sizes="(max-width: 768px) 100vw, 600px" className="object-cover rounded-lg" />
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -117,7 +120,9 @@ export function ReportReview() {
                   <div className="text-sm font-medium mb-2">效果图</div>
                   <div className="flex flex-col gap-2">
                     {detail.spot.effectImages.map((img: string, i: number) => (
-                      <img key={i} src={img} alt={`效果图${i+1}`} className="rounded-lg border w-full" loading="lazy" />
+                      <div key={i} className="relative w-full aspect-video rounded-lg border overflow-hidden">
+                        <Image src={img} alt={`效果图${i+1}`} fill sizes="(max-width: 768px) 100vw, 600px" className="object-cover rounded-lg" />
+                      </div>
                     ))}
                   </div>
                 </div>

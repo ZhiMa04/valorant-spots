@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { Check, X, Eye } from 'lucide-react'
 import {
@@ -99,7 +99,9 @@ export function SpotReview() {
                   <h4 className="font-medium text-sm mb-2">描点图</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {detail.markerImages.map((img, i) => (
-                      <img key={i} src={img} alt="" className="rounded-lg border" />
+                      <div key={i} className="relative aspect-video rounded-lg border overflow-hidden">
+                        <Image src={img} alt="" fill sizes="(max-width: 768px) 50vw, 300px" className="object-cover rounded-lg" />
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -109,7 +111,9 @@ export function SpotReview() {
                   <h4 className="font-medium text-sm mb-2">效果图</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {detail.effectImages.map((img, i) => (
-                      <img key={i} src={img} alt="" className="rounded-lg border" />
+                      <div key={i} className="relative aspect-video rounded-lg border overflow-hidden">
+                        <Image src={img} alt="" fill sizes="(max-width: 768px) 50vw, 300px" className="object-cover rounded-lg" />
+                      </div>
                     ))}
                   </div>
                 </div>

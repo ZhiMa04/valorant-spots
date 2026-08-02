@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Bell, ChevronRight } from 'lucide-react'
+import Image from 'next/image'
 
 const TYPE_LABELS: Record<string, string> = {
   SPOT_REJECTED: '点位审核',
@@ -201,11 +202,13 @@ export function NotificationButton() {
             {selected?.images && selected.images.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
                 {selected.images.map((img, i) => (
-                  <a key={i} href={img} target="_blank" rel="noopener noreferrer">
-                    <img
+                  <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="relative w-full aspect-video rounded-lg border overflow-hidden">
+                    <Image
                       src={img}
                       alt={`图片${i + 1}`}
-                      className="w-full rounded-lg border cursor-pointer hover:opacity-80 transition-opacity object-cover"
+                      fill
+                      sizes="(max-width: 768px) 50vw, 300px"
+                      className="object-cover rounded-lg hover:opacity-80 transition-opacity"
                     />
                   </a>
                 ))}

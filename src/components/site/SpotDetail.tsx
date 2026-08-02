@@ -18,6 +18,7 @@ import { DropZone } from './DropZone'
 import { ThumbsUp, ThumbsDown, Flag, Trash2, Reply, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { BackBar } from './BackBar'
+import Image from 'next/image'
 
 // 举报原因
 const REPORT_REASONS = [
@@ -288,13 +289,16 @@ export function SpotDetail() {
               {spot.markerImages.map((img: string, i: number) => (
                 <div key={i} className="relative">
                   <span className="absolute -left-6 top-2 text-xs text-muted-foreground font-mono">{i + 1}</span>
-                  <img
-                    src={img}
-                    alt={`描点图${i+1}`}
-                    loading="lazy"
-                    className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
-                    onClick={() => { setLightboxImgs([...spot.markerImages, ...(spot.effectImages || [])]); setLightboxIndex(i); setZoom(1) }}
-                  />
+                  <div className="relative w-full aspect-video rounded-lg border overflow-hidden cursor-zoom-in hover:opacity-90 transition-opacity">
+                    <Image
+                      src={img}
+                      alt={`描点图${i+1}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 800px"
+                      className="object-cover"
+                      onClick={() => { setLightboxImgs([...spot.markerImages, ...(spot.effectImages || [])]); setLightboxIndex(i); setZoom(1) }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -309,13 +313,16 @@ export function SpotDetail() {
               {spot.effectImages.map((img: string, i: number) => (
                 <div key={i} className="relative">
                   <span className="absolute -left-6 top-2 text-xs text-muted-foreground font-mono">{(spot.markerImages?.length || 0) + i + 1}</span>
-                  <img
-                    src={img}
-                    alt={`效果图${i+1}`}
-                    loading="lazy"
-                    className="rounded-lg border w-full cursor-zoom-in hover:opacity-90 transition-opacity"
-                    onClick={() => { setLightboxImgs([...(spot.markerImages || []), ...spot.effectImages]); setLightboxIndex((spot.markerImages?.length || 0) + i); setZoom(1) }}
-                  />
+                  <div className="relative w-full aspect-video rounded-lg border overflow-hidden cursor-zoom-in hover:opacity-90 transition-opacity">
+                    <Image
+                      src={img}
+                      alt={`效果图${i+1}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 800px"
+                      className="object-cover"
+                      onClick={() => { setLightboxImgs([...(spot.markerImages || []), ...spot.effectImages]); setLightboxIndex((spot.markerImages?.length || 0) + i); setZoom(1) }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
