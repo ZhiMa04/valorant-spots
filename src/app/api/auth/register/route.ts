@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     // 昵称查重
     const nicknameExists = await db.user.findUnique({ where: { nickname } })
     if (nicknameExists) {
-      return NextResponse.json({ error: '昵称已被占用' }, { status: 409 })
+      return NextResponse.json({ error: '该昵称已被注册，请换一个' }, { status: 409 })
     }
 
     // bcrypt 哈希密码

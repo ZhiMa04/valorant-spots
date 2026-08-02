@@ -103,7 +103,7 @@ export const PATCH = withAdmin(async (req, admin) => {
     }
     const existing = await db.user.findUnique({ where: { nickname } })
     if (existing) {
-      return NextResponse.json({ error: '昵称已被占用' }, { status: 409 })
+      return NextResponse.json({ error: '该昵称已被注册，请换一个' }, { status: 409 })
     }
   }
 

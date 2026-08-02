@@ -35,7 +35,7 @@ export const POST = withAuth(async (req, user) => {
     // ========== 昵称查重 ==========
     const existing = await db.user.findUnique({ where: { nickname: newNickname } })
     if (existing) {
-      return NextResponse.json({ error: '昵称已被占用' }, { status: 409 })
+      return NextResponse.json({ error: '该昵称已被注册，请换一个' }, { status: 409 })
     }
 
     // ========== 更新昵称 ==========
