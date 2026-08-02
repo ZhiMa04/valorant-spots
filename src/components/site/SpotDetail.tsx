@@ -19,6 +19,7 @@ import { ThumbsUp, ThumbsDown, Flag, Trash2, Reply, ChevronLeft, ChevronRight } 
 import { toast } from 'sonner'
 import { BackBar } from './BackBar'
 import Image from 'next/image'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // 举报原因
 const REPORT_REASONS = [
@@ -64,6 +65,11 @@ export function SpotDetail() {
   const [editContent, setEditContent] = useState('')
   const [editMarkerPaths, setEditMarkerPaths] = useState<string[]>([])
   const [editEffectPaths, setEditEffectPaths] = useState<string[]>([])
+  const [editMapId, setEditMapId] = useState('')
+  const [editAgentId, setEditAgentId] = useState('')
+  const [editFaction, setEditFaction] = useState('ATTACK')
+  const [maps, setMaps] = useState<any[]>([])
+  const [agents, setAgents] = useState<any[]>([])
   const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null)
   const [lightboxImgs, setLightboxImgs] = useState<string[]>([])
   const [lightboxIndex, setLightboxIndex] = useState(0)
@@ -388,6 +394,12 @@ export function SpotDetail() {
               setEditContent(spot.content)
               setEditMarkerPaths(spot.markerImages || [])
               setEditEffectPaths(spot.effectImages || [])
+              setEditMapId(String(spot.mapId))
+              setEditAgentId(String(spot.agentId))
+              setEditFaction(spot.faction)
+              // 懒加载地图和特工列表
+              if (maps.length === 0) fetch('/api/maps').then(r => r.json()).then(setMaps).catch(() => {})
+              if (agents.length === 0) fetch('/api/agents?mapId=0').then(r => r.json()).then(setAgents).catch(() => {})
               setEditOpen(true)
             }}>
               编辑点位
@@ -487,11 +499,66 @@ export function SpotDetail() {
 
       {/* ========== 编辑弹窗 ========== */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>编辑点位</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
+            {/* 地图 */}
+            <div className="space-y-2">
+              <Label>地图</Label>
+              <Select value={editMapId} onValueChange={setEditMapId}>
+                <SelectTrigger><SelectValue placeholder="选择地图" /></SelectTrigger>
+                <SelectContent>
+                  {maps.map((m: any) => (
+                    <SelectItem key={m.id} value={String(m.id)}>
+                      <div className="flex items-center gap-2">
+                        <img src={`/maps/${m.name}.webp`} alt={m.name} className="w-8 h-6 rounded object-cover" />
+                        <span>{m.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 特工 */}
+            <div className="space-y-2">
+              <Label>特工</Label>
+              <Select value={editAgentId} onValueChange={setEditAgentId}>
+                <SelectTrigger><SelectValue placeholder="选择特工" /></SelectTrigger>
+                <SelectContent>
+                  {agents.map((a: any) => (
+                    <SelectItem key={a.id} value={String(a.id)}>
+                      <div className="flex items-center gap-2">
+                        <img src={`/agents/${a.name}.webp`} alt={a.name} className="w-6 h-6 rounded object-cover" />
+                        <span>{a.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 阵营 */}
+            <div className="space-y-2">
+              <Label>阵营</Label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setEditFaction('ATTACK')}
+                  className={`flex-1 py-2 rounded-lg border text-sm ${editFaction === 'ATTACK' ? 'border-red-500 bg-red-50 text-red-600' : ''}`}
+                >
+                  进攻方
+                </button>
+                <button
+                  onClick={() => setEditFaction('DEFENSE')}
+                  className={`flex-1 py-2 rounded-lg border text-sm ${editFaction === 'DEFENSE' ? 'border-blue-500 bg-blue-50 text-blue-600' : ''}`}
+                >
+                  防守方
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="edit-title">标题</Label>
               <Input
@@ -544,6 +611,9 @@ export function SpotDetail() {
                   content: editContent,
                   markerImages: editMarkerPaths,
                   effectImages: editEffectPaths,
+                  mapId: Number(editMapId),
+                  agentId: Number(editAgentId),
+                  faction: editFaction,
                 }),
               })
               const data = await res.json()

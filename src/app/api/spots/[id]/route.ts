@@ -81,7 +81,7 @@ export const PATCH = withAuth(async (req, user) => {
     const id = Number(pathParts[pathParts.length - 1])
 
     const body = await req.json()
-    const { title, content, markerImages, effectImages } = body
+    const { title, content, markerImages, effectImages, mapId, agentId, faction } = body
 
     const spot = await db.spot.findUnique({ where: { id } })
     if (!spot) return NextResponse.json({ error: '点位不存在' }, { status: 404 })
@@ -96,6 +96,9 @@ export const PATCH = withAuth(async (req, user) => {
     if (content !== undefined) data.content = content?.trim() || spot.content
     if (markerImages !== undefined) data.markerImages = JSON.stringify(markerImages)
     if (effectImages !== undefined) data.effectImages = JSON.stringify(effectImages)
+    if (mapId) data.mapId = Number(mapId)
+    if (agentId) data.agentId = Number(agentId)
+    if (faction === 'ATTACK' || faction === 'DEFENSE') data.faction = faction
 
     await db.spot.update({ where: { id }, data })
     return NextResponse.json({ message: '修改成功' })
