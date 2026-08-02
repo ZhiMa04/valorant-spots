@@ -82,9 +82,11 @@ export const PATCH = withAdmin(async (req, admin) => {
     }
   }
 
-  // 角色权限：普通管理员只能设 USER/MEMBER，高级管理员可设 USER/MEMBER/ADMIN
+  // 角色权限：普通管理员只能设 USER/MEMBER，高级管理员可设全部
   if (role) {
-    const allowedRoles = admin.role === 'SUPER_ADMIN' ? ['USER', 'MEMBER', 'ADMIN'] : ['USER', 'MEMBER']
+    const allowedRoles = admin.role === 'SUPER_ADMIN'
+      ? ['USER', 'MEMBER', 'ADMIN', 'SUPER_ADMIN']
+      : ['USER', 'MEMBER']
     if (!allowedRoles.includes(role)) {
       return NextResponse.json({ error: '无权设置该身份' }, { status: 400 })
     }

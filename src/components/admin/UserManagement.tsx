@@ -58,15 +58,23 @@ export function UserManagement() {
 
   const handleEditUser = async () => {
     if (!editUser) return
-    const res = await fetch(`/api/admin/users?userId=${editUser.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrf() },
-      body: JSON.stringify({ nickname: editNickname, role: editRole }),
-    })
-    const data = await res.json()
-    toast[data.error ? 'error' : 'success'](data.error || '修改成功')
-    setEditUser(null)
-    fetchUsers()
+    try {
+      const res = await fetch(`/api/admin/users?userId=${editUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrf() },
+        body: JSON.stringify({ nickname: editNickname, role: editRole }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        toast.error(data.error || '修改失败')
+        return
+      }
+      toast.success('修改成功')
+      setEditUser(null)
+      fetchUsers()
+    } catch {
+      toast.error('网络错误，请重试')
+    }
   }
 
   const handleResetPassword = async () => {
@@ -168,6 +176,7 @@ export function UserManagement() {
                   <SelectItem value="USER">普通用户</SelectItem>
                   <SelectItem value="MEMBER">会员</SelectItem>
                   {isSuperAdmin && <SelectItem value="ADMIN">管理员</SelectItem>}
+                  {isSuperAdmin && <SelectItem value="SUPER_ADMIN">高级管理员</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
