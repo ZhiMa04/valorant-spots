@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
-import { withAuth } from '@/lib/middleware'
+import { withAuth, withSuperAdmin } from '@/lib/middleware'
 import { getUserStats } from '@/lib/userStats'
 
 // GET /api/spots/[id] — 获取点位详情
@@ -70,6 +70,7 @@ export async function GET(
     isReported: spot.reports.length > 0,
     userAttitude,
     canEdit: currentUser?.id === spot.creatorId || currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN',
+    canDelete: currentUser?.role === 'SUPER_ADMIN',
   })
 }
 
@@ -104,6 +105,50 @@ export const PATCH = withAuth(async (req, user) => {
     return NextResponse.json({ message: '修改成功' })
   } catch (error) {
     console.error('编辑点位失败:', error)
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 })
+  }
+})
+
+// DELETE /api/spots/[id] — 删除点位（仅高级管理员，硬删除，不计入统计）
+export const DELETE = withSuperAdmin(async (req, admin) => {
+  try {
+    const url = new URL(req.url)
+    const pathParts = url.pathname.split('/')
+    const id = Number(pathParts[pathParts.length - 1])
+
+    const spot = await db.spot.findUnique({
+      where: { id },
+      include: {
+        creator: { select: { id: true, nickname: true } },
+        map: { select: { name: true } },
+        agent: { select: { name: true } },
+      },
+    })
+    if (!spot) return NextResponse.json({ error: '点位不存在' }, { status: 404 })
+
+    // 事务：先删关联数据，再删点位
+    await db.$transaction([
+      db.comment.deleteMany({ where: { spotId: id } }),
+      db.likeDislike.deleteMany({ where: { spotId: id } }),
+      db.report.deleteMany({ where: { spotId: id } }),
+      db.notification.deleteMany({ where: { relatedId: id, type: 'SPOT_REJECTED' } }),
+      db.spot.delete({ where: { id } }),
+    ])
+
+    // 审核日志
+    await db.auditLog.create({
+      data: {
+        handlerId: admin.id,
+        action: 'SPOT_AUDIT',
+        targetId: id,
+        result: 'DELETED',
+        detail: `删除点位「${spot.title}」(创建者：${spot.creator.nickname} #${spot.creator.id}，地图：${spot.map.name}，特工：${spot.agent.name})`,
+      }
+    })
+
+    return NextResponse.json({ message: '点位已删除' })
+  } catch (error) {
+    console.error('删除点位失败:', error)
     return NextResponse.json({ error: '服务器错误' }, { status: 500 })
   }
 })

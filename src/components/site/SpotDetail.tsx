@@ -52,7 +52,7 @@ interface CommentData {
 }
 
 export function SpotDetail() {
-  const { selectedSpotId, goSpots, user, refreshTrigger } = useStore()
+  const { selectedSpotId, goSpots, goBack, user, refreshTrigger } = useStore()
   const [spot, setSpot] = useState<any>(null)
   const [comments, setComments] = useState<CommentData[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,6 +71,7 @@ export function SpotDetail() {
   const [maps, setMaps] = useState<any[]>([])
   const [agents, setAgents] = useState<any[]>([])
   const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null)
+  const [deleteSpotOpen, setDeleteSpotOpen] = useState(false)
   const [lightboxImgs, setLightboxImgs] = useState<string[]>([])
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [zoom, setZoom] = useState(1)
@@ -405,6 +406,13 @@ export function SpotDetail() {
               编辑点位
             </Button>
           )}
+
+          {/* 删除（仅高级管理员） */}
+          {spot.canDelete && (
+            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteSpotOpen(true)}>
+              <Trash2 className="h-4 w-4" /> 删除点位
+            </Button>
+          )}
         </div>
 
         {/* ========== 评论区 ========== */}
@@ -641,6 +649,40 @@ export function SpotDetail() {
             <AlertDialogAction
               className="bg-red-500 hover:bg-red-600"
               onClick={() => { if (deleteCommentId) handleDeleteComment(deleteCommentId); setDeleteCommentId(null) }}
+            >确认删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ========== 删除点位确认弹窗 ========== */}
+      <AlertDialog open={deleteSpotOpen} onOpenChange={setDeleteSpotOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除点位？</AlertDialogTitle>
+            <AlertDialogDescription>
+              点位「{spot?.title}」将被永久删除，包括所有评论、点赞和举报记录。此操作不可撤销，且不计入任何统计。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={async () => {
+                if (!csrfToken) return
+                const res = await fetch(`/api/spots/${selectedSpotId}`, {
+                  method: 'DELETE',
+                  headers: { 'X-CSRF-Token': csrfToken },
+                })
+                const data = await res.json()
+                if (res.ok) {
+                  toast.success('点位已删除')
+                  setDeleteSpotOpen(false)
+                  // 返回上一页
+                  goBack()
+                } else {
+                  toast.error(data.error || '删除失败')
+                }
+              }}
             >确认删除</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
