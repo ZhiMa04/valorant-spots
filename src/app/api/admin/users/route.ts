@@ -61,8 +61,8 @@ export const PATCH = withAdmin(async (req, admin) => {
   const body = await req.json()
   const { nickname, role, status } = body
 
-  // 不能操作自己
-  if (userId === admin.id) {
+  // 不能操作自己（高级管理员除外）
+  if (userId === admin.id && admin.role !== 'SUPER_ADMIN') {
     return NextResponse.json({ error: '不能修改自身' }, { status: 400 })
   }
 
@@ -71,13 +71,15 @@ export const PATCH = withAdmin(async (req, admin) => {
     return NextResponse.json({ error: '用户不存在' }, { status: 404 })
   }
 
-  // 权限层级检查
-  const levelMap: Record<string, number> = { USER: 0, MEMBER: 1, ADMIN: 2, SUPER_ADMIN: 3 }
-  const adminLevel = levelMap[admin.role]
-  const targetLevel = levelMap[target.role]
+  // 权限层级检查（高级管理员可以改自己）
+  if (userId !== admin.id) {
+    const levelMap: Record<string, number> = { USER: 0, MEMBER: 1, ADMIN: 2, SUPER_ADMIN: 3 }
+    const adminLevel = levelMap[admin.role]
+    const targetLevel = levelMap[target.role]
 
-  if (targetLevel >= adminLevel) {
-    return NextResponse.json({ error: '不能修改同级或上级' }, { status: 403 })
+    if (targetLevel >= adminLevel) {
+      return NextResponse.json({ error: '不能修改同级或上级' }, { status: 403 })
+    }
   }
 
   // 角色权限：普通管理员只能设 USER/MEMBER，高级管理员可设 USER/MEMBER/ADMIN

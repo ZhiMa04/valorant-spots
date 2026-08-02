@@ -86,10 +86,10 @@ export function UserManagement() {
     }
   }
 
-  // 判断是否可操作（不能操作自己、同级、上级）
+  // 判断是否可操作（高级管理员可以操作自己，但不能操作同级/上级的其他人）
   const canOperate = (u: UserRow) => {
     if (!admin) return false
-    if (u.id === admin.id) return false
+    if (u.id === admin.id) return isSuperAdmin
     if (u.role === 'SUPER_ADMIN' && admin.role !== 'SUPER_ADMIN') return false
     if (u.role === 'ADMIN' && admin.role !== 'SUPER_ADMIN') return false
     return true
