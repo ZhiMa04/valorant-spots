@@ -614,7 +614,7 @@ export function SpotDetail() {
               </div>
 
               {/* 底部控制条 */}
-              <div className="flex items-center gap-4 py-2 px-4 bg-muted/80 rounded-t-lg">
+              <div className="flex items-center gap-4 py-2 px-4 bg-muted/80 rounded-t-lg w-full">
                 {lightboxImgs.length > 1 && (
                   <span className="text-xs text-muted-foreground font-mono">
                     {lightboxIndex + 1} / {lightboxImgs.length}
@@ -634,6 +634,14 @@ export function SpotDetail() {
                   className="text-xs hover:text-primary px-2 py-1 rounded bg-muted"
                 >重置</button>
               </div>
+
+              {/* 正文（显示在图片下方） */}
+              {spot?.content && (
+                <div className="w-full max-h-[30vh] overflow-y-auto px-6 py-3 bg-background border-t">
+                  <div className="text-xs text-muted-foreground mb-1 font-medium">正文</div>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">{spot.content}</div>
+                </div>
+              )}
             </>
           )}
         </DialogContent>
