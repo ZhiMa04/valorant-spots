@@ -20,8 +20,8 @@ export const POST = withAuth(async (req, user) => {
       return NextResponse.json({ error: '新昵称与当前相同' }, { status: 400 })
     }
 
-    // ========== 30天冷却检查 ==========
-    if (user.lastNicknameChange) {
+    // ========== 30天冷却检查（高级管理员无冷却）==========
+    if (user.role !== 'SUPER_ADMIN' && user.lastNicknameChange) {
       const daysSince = (Date.now() - user.lastNicknameChange.getTime()) / (1000 * 60 * 60 * 24)
       if (daysSince < 30) {
         const remaining = Math.ceil(30 - daysSince)
