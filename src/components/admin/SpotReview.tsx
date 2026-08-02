@@ -89,30 +89,46 @@ export function SpotReview() {
 
       {/* 查看详情 */}
       <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{detail?.title}</DialogTitle></DialogHeader>
+        <DialogContent className="sm:max-w-[95vw] max-h-[95vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="text-xl">{detail?.title}</DialogTitle></DialogHeader>
           {detail && (
             <div className="space-y-4">
-              <div className="text-sm text-muted-foreground whitespace-pre-wrap">{detail.content}</div>
+              {/* 地图/特工/阵营信息 */}
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 border">
+                <span>地图：<span className="font-medium text-foreground">{detail.map.name}</span></span>
+                <span>·</span>
+                <span>特工：<span className="font-medium text-foreground">{detail.agent.name}</span></span>
+                <span>·</span>
+                <span>阵营：<span className="font-medium text-foreground">{detail.faction === 'ATTACK' ? '进攻方' : '防守方'}</span></span>
+                <span>·</span>
+                <span>创建者：<span className="font-medium text-foreground">{detail.creator.nickname} #{String(detail.creator.id).padStart(5, '0')}</span></span>
+              </div>
+
+              {/* 正文 */}
+              <div className="text-sm leading-relaxed whitespace-pre-wrap">{detail.content}</div>
+
+              {/* 描点图 — 全宽展示 */}
               {detail.markerImages.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-sm mb-2">描点图</h4>
-                  <div className="grid grid-cols-2 gap-2">
+                  <h4 className="font-semibold text-sm mb-2">描点图</h4>
+                  <div className="flex flex-col gap-3">
                     {detail.markerImages.map((img, i) => (
-                      <div key={i} className="relative aspect-video rounded-lg border overflow-hidden">
-                        <Image src={img} alt="" fill sizes="(max-width: 768px) 50vw, 300px" className="object-cover rounded-lg" />
+                      <div key={i} className="relative w-full aspect-video rounded-lg border overflow-hidden">
+                        <Image src={img} alt={`描点图${i+1}`} fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover rounded-lg" />
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* 效果图 — 全宽展示 */}
               {detail.effectImages.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-sm mb-2">效果图</h4>
-                  <div className="grid grid-cols-2 gap-2">
+                  <h4 className="font-semibold text-sm mb-2">效果图</h4>
+                  <div className="flex flex-col gap-3">
                     {detail.effectImages.map((img, i) => (
-                      <div key={i} className="relative aspect-video rounded-lg border overflow-hidden">
-                        <Image src={img} alt="" fill sizes="(max-width: 768px) 50vw, 300px" className="object-cover rounded-lg" />
+                      <div key={i} className="relative w-full aspect-video rounded-lg border overflow-hidden">
+                        <Image src={img} alt={`效果图${i+1}`} fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover rounded-lg" />
                       </div>
                     ))}
                   </div>
