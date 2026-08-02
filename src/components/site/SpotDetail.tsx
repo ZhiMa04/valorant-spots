@@ -571,7 +571,7 @@ export function SpotDetail() {
 
       {/* ========== 图片查看器（支持缩放+左右切换） ========== */}
       <Dialog open={lightboxImgs.length > 0} onOpenChange={(open) => { if (!open) { setLightboxImgs([]); setZoom(1) } }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden flex flex-col items-center justify-center gap-3">
+        <DialogContent className="sm:max-w-[95vw] max-h-[95vh] p-0 overflow-hidden flex flex-col items-center justify-center gap-0">
           {lightboxImgs.length > 0 && (
             <>
               <div className="flex items-center justify-center w-full flex-1 relative">
@@ -586,7 +586,7 @@ export function SpotDetail() {
                 )}
 
                 <div
-                  className="overflow-auto flex-1 flex items-center justify-center max-h-[80vh]"
+                  className="overflow-auto flex-1 flex items-center justify-center max-h-[75vh]"
                   onWheel={(e) => {
                     e.preventDefault()
                     const delta = e.deltaY > 0 ? -0.2 : 0.2
@@ -596,7 +596,7 @@ export function SpotDetail() {
                   <img
                     src={lightboxImgs[lightboxIndex]}
                     alt={`图片${lightboxIndex + 1}`}
-                    className="max-w-full max-h-[80vh] object-contain transition-transform"
+                    className="max-w-full max-h-[75vh] object-contain transition-transform"
                     style={{ transform: `scale(${zoom})` }}
                     draggable={false}
                   />
@@ -637,8 +637,8 @@ export function SpotDetail() {
 
               {/* 正文（显示在图片下方） */}
               {spot?.content && (
-                <div className="w-full max-h-[30vh] overflow-y-auto px-6 py-3 bg-background border-t">
-                  <div className="text-xs text-muted-foreground mb-1 font-medium">正文</div>
+                <div className="w-full max-h-[15vh] overflow-y-auto px-6 py-2 bg-background border-t">
+                  <div className="text-xs text-muted-foreground mb-0.5 font-medium">正文</div>
                   <div className="text-sm leading-relaxed whitespace-pre-wrap">{spot.content}</div>
                 </div>
               )}
