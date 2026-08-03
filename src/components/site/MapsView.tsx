@@ -25,6 +25,12 @@ export function MapsView() {
 
   useEffect(() => { fetchMaps() }, [])
 
+  // 排序：点位数降序 → 名称首字母升序
+  const sortedMaps = [...maps].sort((a, b) => {
+    if (b.spotCount !== a.spotCount) return b.spotCount - a.spotCount
+    return a.name.localeCompare(b.name, 'zh-Hans')
+  })
+
   if (loading) return (
     <div>
       <h2 className="text-xl font-bold mb-4">选择地图</h2>
@@ -37,7 +43,7 @@ export function MapsView() {
     <div>
       <h2 className="text-xl font-bold mb-4">选择地图</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {maps.map((map, i) => (
+        {sortedMaps.map((map, i) => (
           <button
             key={map.id}
             onClick={() => goAgents(map.id, map.name)}
