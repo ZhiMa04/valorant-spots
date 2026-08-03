@@ -68,8 +68,17 @@ export function SpotReview() {
         <div className="rounded-xl border divide-y">
           {spots.map(s => (
             <div key={s.id} className="flex items-center gap-3 px-4 py-3">
+              {/* 缩略图：优先第一张效果图，没有则第一张描点图 */}
+              <div className="relative h-14 w-24 shrink-0 rounded-lg border overflow-hidden bg-muted">
+                {(() => {
+                  const thumb = s.effectImages[0] || s.markerImages[0]
+                  return thumb
+                    ? <Image src={thumb} alt={s.title} fill sizes="96px" className="object-cover rounded-lg" />
+                    : <div className="flex items-center justify-center h-full text-[10px] text-muted-foreground">无图</div>
+                })()}
+              </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm">{s.title}</div>
+                <div className="font-medium text-sm truncate">{s.title}</div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {s.map.name} · {s.agent.name} · {s.faction === 'ATTACK' ? '进攻' : '防守'}
                 </div>

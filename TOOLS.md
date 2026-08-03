@@ -42,3 +42,23 @@ Skills define _how_ tools work. This file is for _your_ specifics — the stuff 
 - 13 张地图 + 29 张特工从 56MB 压到 316KB
 - `SmartImage` 组件：骨架占位 + `decoding="async"` + `loading="lazy"` + 渐显动画
 - Vercel Blob 上传图片时 `put(filename, file, { access: 'public', token, storeId })`
+- **next/image 优化**: 配置 `next.config.ts` 的 `images.remotePatterns` 允许 Vercel Blob 域名，自动转 WebP/AVIF + 响应式尺寸，手机端加载 640px 桌面 800px，体积砍 80%+
+- **客户端压缩**: DropZone 用 Canvas API 压缩（maxSize 1920px, quality 0.85），200KB 以下不压缩，压缩后再上传，减少传输体积
+- **服务端并行上传**: `Promise.all` 并行上传多张图到 Vercel Blob，替代串行 for 循环
+
+## Vercel 域名重定向问题
+
+- `kudian.fun`（非 www）会 308 重定向到 `www.kudian.fun`
+- **微信验证文件必须放在认证域名对应的根目录**：微信爬虫不跟随 308 重定向
+- 解决：在微信认证页面填写 `www.kudian.fun` 而非 `kudian.fun`，或调整 Vercel Domains 设置
+
+## shadcn Dialog 尺寸覆盖
+
+- Dialog 组件默认 `sm:max-w-lg`（512px），会覆盖传入的 `max-w-4xl`
+- 解决：传入时用 `sm:max-w-[95vw]` 覆盖 `sm:` 前缀的默认值
+
+## 权限设计经验
+
+- SUPER_ADMIN 不能降自己的身份（防止误操作导致无人管理）
+- 审核日志写入时用 `detail` 字段存储人类可读的完整描述（谁处理了谁的什么点位/举报）
+- 硬删除点位需事务清理关联数据（评论、点赞、举报、通知）
