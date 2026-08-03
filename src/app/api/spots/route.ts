@@ -38,6 +38,7 @@ export async function GET(req: Request) {
     createdAt: s.createdAt,
     creatorId: s.creatorId,
     creator: s.creator,
+    effectImages: s.effectImages,
     isReported: s.reports.length > 0,
   }))
 
