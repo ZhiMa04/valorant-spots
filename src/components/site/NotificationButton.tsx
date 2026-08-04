@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Bell, ChevronRight } from 'lucide-react'
+import { Bell, ChevronRight, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -52,6 +52,7 @@ export function NotificationButton() {
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<NotifItem | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const fetchData = async () => {
     try {
@@ -107,6 +108,38 @@ export function NotificationButton() {
       handleRead(item.id)
     }
     setOpen(false)
+  }
+
+  // 删除公告：高级管理员可删任意，管理员只能删自己发的
+  const canDelete = (item: NotifItem | null) => {
+    if (!item || item.type !== 'ANNOUNCEMENT' || !user) return false
+    if (user.role === 'SUPER_ADMIN') return true
+    if (user.role === 'ADMIN') return item.creator?.id === user.id
+    return false
+  }
+
+  const handleDelete = async () => {
+    if (!selected || deleting) return
+    if (!confirm('确定删除这条公告吗？删除后不可恢复。')) return
+    setDeleting(true)
+    try {
+      const csrfToken = document.cookie.match(/csrf-token=([^;]+)/)?.[1]
+      const res = await fetch(`/api/admin/announcements?id=${selected.id}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-Token': csrfToken || '' },
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || '删除失败')
+        return
+      }
+      setItems(prev => prev.filter(n => !(n.type === 'ANNOUNCEMENT' && n.id === selected.id)))
+      setSelected(null)
+    } catch {
+      alert('网络错误，删除失败')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -234,8 +267,19 @@ export function NotificationButton() {
             )}
           </div>
 
-          <DialogFooter>
-            <Button onClick={() => setSelected(null)} className="w-full">确认</Button>
+          <DialogFooter className="gap-2 sm:gap-2">
+            {canDelete(selected) && (
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="gap-1.5"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {deleting ? '删除中...' : '删除公告'}
+              </Button>
+            )}
+            <Button onClick={() => setSelected(null)} className="flex-1">确认</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
