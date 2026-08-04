@@ -86,7 +86,14 @@ export const DELETE = withAdmin(async (req, admin) => {
   if (!id) return NextResponse.json({ error: '缺少 id' }, { status: 400 })
 
   const ann = await db.announcement.findUnique({ where: { id } })
-  if (!ann) return NextResponse.json({ error: '公告不存在' }, { status: 404 })
+
+  // 公告已不存在（可能之前删过但通知残留），直接清理通知并返回成功
+  if (!ann) {
+    await db.notification.deleteMany({
+      where: { type: 'ANNOUNCEMENT', relatedId: id },
+    })
+    return NextResponse.json({ message: '已删除' })
+  }
 
   if (ann.creatorId !== admin.id && admin.role !== 'SUPER_ADMIN') {
     return NextResponse.json({ error: '无权删除他人公告' }, { status: 403 })
