@@ -92,6 +92,9 @@ export const DELETE = withAdmin(async (req, admin) => {
     return NextResponse.json({ error: '无权删除他人公告' }, { status: 403 })
   }
 
+  await db.notification.deleteMany({
+    where: { type: 'ANNOUNCEMENT', relatedId: id },
+  })
   await db.announcement.delete({ where: { id } })
   return NextResponse.json({ message: '已删除' })
 })
