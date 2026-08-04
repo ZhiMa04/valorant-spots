@@ -41,6 +41,7 @@ interface NotifItem {
   content: string
   images?: string[]
   isRead: boolean
+  relatedId?: number | null
   createdAt: string
   creator?: { id: number; nickname: string; role: string } | null
 }
@@ -124,7 +125,7 @@ export function NotificationButton() {
     setDeleting(true)
     try {
       const csrfToken = document.cookie.match(/csrf-token=([^;]+)/)?.[1]
-      const res = await fetch(`/api/admin/announcements?id=${selected.id}`, {
+      const res = await fetch(`/api/admin/announcements?id=${selected.relatedId || selected.id}`, {
         method: 'DELETE',
         headers: { 'X-CSRF-Token': csrfToken || '' },
       })
@@ -133,7 +134,10 @@ export function NotificationButton() {
         alert(data.error || '删除失败')
         return
       }
-      setItems(prev => prev.filter(n => !(n.type === 'ANNOUNCEMENT' && n.id === selected.id)))
+      setItems(prev => prev.filter(n => {
+        const annId = n.relatedId || n.id
+        return annId !== (selected.relatedId || selected.id)
+      }))
       setSelected(null)
     } catch {
       alert('网络错误，删除失败')
